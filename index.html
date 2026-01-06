@@ -26,6 +26,13 @@
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       background: radial-gradient(1200px 800px at 10% 10%, #18245a 0%, var(--bg) 45%, #070a14 100%);
       color: var(--text);
+      /* disable global vertical scroll, internal panels scroll instead */
+      overflow-y: hidden;
+    }
+
+    html{
+      /* Ensure top-level no vertical scroll */
+      overflow-y: hidden;
     }
     a{color:var(--accent)}
     .topbar{
@@ -153,26 +160,35 @@
       display:flex;
       gap: 12px;
       padding: 12px;
+      /* occupy remaining viewport minus topbar; topbar and margin approx 180px */
+      height: calc(100vh - 180px);
+      overflow: hidden;
     }
     @media (max-width: 1100px){
       .layout{flex-direction: column;}
     }
     .left{
-      flex: 1.35;
+      /* 调整比例，使右侧更宽，左侧内容保持适中 */
+      flex: 0.9;
       display:flex;
       flex-direction: column;
       gap: 12px;
-      min-width: 720px;
+      min-width: 520px;
+      /* scroll within left column, not page */
+      overflow-y:auto;
     }
     @media (max-width: 1100px){
       .left{min-width: 0;}
     }
     .right{
-      flex: .65;
+      /* 调整比例和宽度以容纳竖排图表 */
+      flex: 1.1;
       display:flex;
       flex-direction: column;
       gap:12px;
-      min-width: 360px;
+      min-width: 520px;
+      /* scroll within right column, not page */
+      overflow-y:auto;
     }
     .card{
       background: linear-gradient(180deg, rgba(18,26,51,.80), rgba(15,23,48,.78));
@@ -248,22 +264,31 @@
       margin-top: 8px;
     }
     .plotGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
+      /* Make the plot grid vertical by default to avoid tall scroll containers. */
+      display:flex;
+      flex-direction: column;
       gap:12px;
     }
+    /* Remove column override at smaller widths since we always stack vertically */
     @media (max-width: 1100px){
-      .plotGrid{grid-template-columns: 1fr;}
+      .plotGrid{flex-direction: column;}
     }
     .plot{
-      height: 320px;
+      /* 大幅缩减图表高度，让所有五个图在较小屏幕上尽量同时显示 */
+      height: 100px;
       border-radius: 14px;
       overflow:hidden;
       border: 1px solid rgba(255,255,255,.08);
       background: rgba(0,0,0,.10);
     }
-    .plot.tall{height: 360px;}
-    .plot.full{grid-column: 1 / -1; height: 420px;}
+    .plot.tall{
+      /* 略高的图表用于输入特性和传输特性 */
+      height: 120px;
+    }
+    .plot.full{
+      /* 最重要的输出特性图略高 */
+      height: 140px;
+    }
 
     .testList{
       display:flex;
@@ -408,17 +433,7 @@
         <div class="paramGrid" id="paramPanel" style="margin-top:10px;"></div>
       </div>
 
-      <div class="card">
-        <h3>图表区（至少 5 张）</h3>
-        <div class="subtle">ui(t)、uo(t)（支持含直流/AC耦合）、输入特性 + Q 点、输出特性族 + 负载线 + 轨迹、传输特性 uo-ui（含线性段提示）。</div>
-        <div class="plotGrid" style="margin-top:10px;">
-          <div id="plotUi" class="plot"></div>
-          <div id="plotUo" class="plot"></div>
-          <div id="plotIn" class="plot tall"></div>
-          <div id="plotTransfer" class="plot tall"></div>
-          <div id="plotOut" class="plot full"></div>
-        </div>
-      </div>
+      <!-- 图表区已移至右侧栏; 保留注释占位，避免布局空洞 -->
 
       <div class="card">
         <h3>模型说明 / 简化假设（避免误当精确 SPICE）</h3>
@@ -443,6 +458,19 @@
       <div class="card">
         <h3>当前诊断（运行中）</h3>
         <div id="liveDiag" class="subtle"></div>
+      </div>
+
+      <!-- 将图表区移至右侧栏，使用竖排布局以避免滚动 -->
+      <div class="card">
+        <h3>图表区（至少 5 张）</h3>
+        <div class="subtle">ui(t)、uo(t)（支持含直流/AC耦合）、输入特性 + Q 点、输出特性族 + 负载线 + 轨迹、传输特性 uo-ui（含线性段提示）。</div>
+        <div class="plotGrid" style="margin-top:10px;">
+          <div id="plotUi" class="plot"></div>
+          <div id="plotUo" class="plot"></div>
+          <div id="plotIn" class="plot tall"></div>
+          <div id="plotTransfer" class="plot tall"></div>
+          <div id="plotOut" class="plot full"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2009,6 +2037,8 @@ function renderAllFromComputed(computed){
   Plotly.react("plotOut", traces, lOut, {displayModeBar:false, responsive:true});
   applyDynamicUiMaxToControls();
   updateLiveDiag(computed);
+  // Attach click handler to output characteristics chart for interactive bias adjustment
+  enableQPointAdjustment();
 }
 
 /* ----------------------------- Power OFF 显示（NO SIGNAL） ----------------------------- */
@@ -2297,12 +2327,75 @@ async function importJSONFile(file){
   if (App.state.fsm.mode==="OFF") renderPowerOff();
 }
 function exportPNGWave(){
-  Plotly.downloadImage("plotUo", {format:"png", filename:"uo_waveform"});
-  setTimeout(()=> Plotly.downloadImage("plotUi", {format:"png", filename:"ui_waveform"}), 350);
+  // Gather the UI and UO plots as PNG images using Plotly.toImage and open them in a new window
+  const ids = ["plotUi","plotUo"];
+  Promise.all(ids.map(id => Plotly.toImage(id, {format:"png"}))).then(images => {
+    const html = images.map(src => `<img style="display:block;margin-bottom:10px;width:100%;max-width:600px;" src="${src}"/>`).join("");
+    const w = window.open("");
+    w.document.write(`<html><head><title>Exported Waveforms</title></head><body style="background:#0b1020;color:#fff;font-family:sans-serif;">${html}</body></html>`);
+    w.document.close();
+  });
 }
 function exportPNGChar(){
-  Plotly.downloadImage("plotOut", {format:"png", filename:"output_characteristics"});
-  setTimeout(()=> Plotly.downloadImage("plotIn", {format:"png", filename:"input_characteristics"}), 350);
+  // Gather the characteristic plots as PNG images using Plotly.toImage and open them in a new window
+  const ids = ["plotOut","plotIn","plotTransfer"];
+  Promise.all(ids.map(id => Plotly.toImage(id, {format:"png"}))).then(images => {
+    const html = images.map(src => `<img style="display:block;margin-bottom:10px;width:100%;max-width:600px;" src="${src}"/>`).join("");
+    const w = window.open("");
+    w.document.write(`<html><head><title>Exported Characteristics</title></head><body style="background:#0b1020;color:#fff;font-family:sans-serif;">${html}</body></html>`);
+    w.document.close();
+  });
+}
+
+// ------------------------- 新增：Q 点点击调节偏置功能 -------------------------
+/**
+ * enableQPointAdjustment():
+ * Attach a click handler to the output characteristics chart.  When the user clicks on the "Q 点" marker,
+ * the x-coordinate (VCE) of the click is used as the target VCEQ.  The function then scans through a range of VBQ values
+ * to find a bias that yields a VCEQ closest to the clicked position, updates the parameter, and re-renders the charts.
+ * Note: This is a simplified approach to “拖拽 Q 点” —用户只需点击想要的新 Q 点位置即可完成调节。
+ */
+function enableQPointAdjustment(){
+  const outDiv = document.getElementById("plotOut");
+  if (!outDiv || typeof Plotly === "undefined") return;
+  // Remove previous listener to avoid stacking multiple handlers
+  if (outDiv._qPointHandler) {
+    Plotly.off(outDiv, 'plotly_click', outDiv._qPointHandler);
+  }
+  const handler = function(event){
+    if (!event || !event.points || event.points.length === 0) return;
+    const pt = event.points[0];
+    // 根据点击点的 VCE 调整 VBQ；不限定点击对象
+    const targetVCE = pt.x;
+    const p = currentParams();
+    const circuit = App.state.circuit;
+    let bestVB = p.VBQ;
+    let bestErr = 1e9;
+    const steps = 60;
+    for (let i=0; i<=steps; i++){
+      const vb = 0.2 + (3.2 - 0.2) * (i/steps);
+      const candidate = deepCopy(p);
+      candidate.VBQ = vb;
+      const dc = solveDC(candidate, circuit);
+      if (dc.ok){
+        const err = Math.abs(dc.VCEQ - targetVCE);
+        if (err < bestErr){
+          bestErr = err;
+          bestVB = vb;
+        }
+      }
+    }
+    p.VBQ = bestVB;
+    buildParamPanel();
+    if (App.state.fsm.mode === "RUN"){
+      computeAndRenderSafe();
+    } else if (App.state.fsm.mode === "HOLD"){
+      App.state.pending = true;
+      document.getElementById("pendingHint").style.display = "block";
+    }
+  };
+  outDiv._qPointHandler = handler;
+  Plotly.on(outDiv, 'plotly_click', handler);
 }
 
 /* ----------------------------- Power/HOLD 按钮逻辑 ----------------------------- */
