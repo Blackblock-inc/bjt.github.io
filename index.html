@@ -1,0 +1,2889 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BJT 三基本放大电路交互教学工具（CE/CC/CB）</title>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a33;
+      --panel2:#0f1730;
+      --text:#e9eeff;
+      --muted:#aab3d6;
+      --accent:#5ad7ff;
+      --good:#2ee59d;
+      --warn:#ffcc66;
+      --bad:#ff4d6d;
+      --grid:#22305c;
+      --stroke:#2b3a70;
+      --shadow: rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% 10%, #18245a 0%, var(--bg) 45%, #070a14 100%);
+      color: var(--text);
+    }
+    a{color:var(--accent)}
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(18,26,51,.92), rgba(18,26,51,.82));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+      padding: 10px 12px;
+    }
+    .row{
+      display:flex;
+      flex-wrap: wrap;
+      align-items:center;
+      gap:10px;
+    }
+    .row .spacer{flex:1}
+    .chip{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    label{
+      font-size:12px;
+      color: var(--muted);
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+    select, button, input[type="number"]{
+      background: rgba(10,14,30,.75);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 10px;
+      outline:none;
+    }
+    select:focus, button:focus, input[type="number"]:focus{
+      border-color: rgba(90,215,255,.55);
+      box-shadow: 0 0 0 3px rgba(90,215,255,.18);
+    }
+    button{
+      cursor:pointer;
+      font-weight:650;
+    }
+    button:hover{filter: brightness(1.07)}
+    .toggle{
+      min-width: 74px;
+    }
+    .toggle.on{
+      border-color: rgba(46,229,157,.7);
+      box-shadow: 0 0 0 3px rgba(46,229,157,.12);
+    }
+    .toggle.off{
+      border-color: rgba(255,77,109,.55);
+      box-shadow: 0 0 0 3px rgba(255,77,109,.10);
+    }
+    .btn-ghost{
+      background: rgba(255,255,255,.06);
+    }
+    .btn-good{
+      background: rgba(46,229,157,.12);
+      border-color: rgba(46,229,157,.35);
+    }
+    .btn-warn{
+      background: rgba(255,204,102,.10);
+      border-color: rgba(255,204,102,.35);
+    }
+    .btn-bad{
+      background: rgba(255,77,109,.10);
+      border-color: rgba(255,77,109,.35);
+    }
+
+    .banner{
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.12);
+      display:none;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .banner.bad{
+      display:block;
+      background: rgba(255,77,109,.10);
+      border-color: rgba(255,77,109,.35);
+      color: #ffd0d9;
+    }
+    .banner.warn{
+      display:block;
+      background: rgba(255,204,102,.10);
+      border-color: rgba(255,204,102,.35);
+      color: #ffe9b8;
+    }
+    .kpis{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: repeat(7, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 1400px){
+      .kpis{grid-template-columns: repeat(4, minmax(140px,1fr));}
+    }
+    @media (max-width: 900px){
+      .kpis{grid-template-columns: repeat(2, minmax(140px,1fr));}
+    }
+    .kpi{
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.18);
+      min-height: 58px;
+    }
+    .kpi .t{font-size: 11px; color: var(--muted); margin-bottom: 4px;}
+    .kpi .v{font-size: 15px; font-weight: 780;}
+    .kpi .s{font-size: 11px; color: var(--muted); margin-top: 2px;}
+
+    .layout{
+      display:flex;
+      gap: 12px;
+      padding: 12px;
+    }
+    @media (max-width: 1100px){
+      .layout{flex-direction: column;}
+    }
+    .left{
+      flex: 1.35;
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 720px;
+    }
+    @media (max-width: 1100px){
+      .left{min-width: 0;}
+    }
+    .right{
+      flex: .65;
+      display:flex;
+      flex-direction: column;
+      gap:12px;
+      min-width: 360px;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(18,26,51,.80), rgba(15,23,48,.78));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.22);
+      padding: 12px;
+    }
+    .card h3{
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: var(--text);
+      letter-spacing: .2px;
+    }
+    .subtle{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .svgWrap{
+      padding: 8px;
+      overflow:hidden;
+    }
+    .paramGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 900px){
+      .paramGrid{grid-template-columns: 1fr;}
+    }
+    .param{
+      background: rgba(0,0,0,.16);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .param .head{
+      display:flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .param .name{
+      font-weight: 750;
+      font-size: 13px;
+    }
+    .param .hint{
+      font-size: 11px;
+      color: var(--muted);
+      text-align:right;
+      white-space: nowrap;
+    }
+    .param .ctrl{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+    input[type="range"]{
+      width: 100%;
+      accent-color: var(--accent);
+    }
+    .num{
+      width: 110px;
+      text-align:right;
+    }
+    .smallRow{
+      display:flex;
+      flex-wrap: wrap;
+      gap:10px;
+      align-items:center;
+      margin-top: 8px;
+    }
+    .plotGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 1100px){
+      .plotGrid{grid-template-columns: 1fr;}
+    }
+    .plot{
+      height: 320px;
+      border-radius: 14px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.10);
+    }
+    .plot.tall{height: 360px;}
+    .plot.full{grid-column: 1 / -1; height: 420px;}
+
+    .testList{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .testItem{
+      background: rgba(0,0,0,.16);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .testItem .top{
+      display:flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .pill{
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .pill.pass{background: rgba(46,229,157,.12); border-color: rgba(46,229,157,.32); color: #baffea;}
+    .pill.fail{background: rgba(255,77,109,.12); border-color: rgba(255,77,109,.35); color: #ffd0d9;}
+    .pill.warn{background: rgba(255,204,102,.10); border-color: rgba(255,204,102,.35); color: #ffe9b8;}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .muted{color: var(--muted);}
+
+    .watermark{
+      display:inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      font-weight: 900;
+      letter-spacing: .6px;
+      font-size: 11px;
+    }
+    .wm-run{background: rgba(90,215,255,.10); border-color: rgba(90,215,255,.25); color: #c9f3ff;}
+    .wm-hold{background: rgba(255,204,102,.10); border-color: rgba(255,204,102,.30); color: #fff0c9;}
+    .wm-off{background: rgba(255,77,109,.10); border-color: rgba(255,77,109,.30); color: #ffd0d9;}
+    .wm-nosig{background: rgba(180,190,220,.10); border-color: rgba(180,190,220,.20); color: #e3e9ff;}
+
+    .footerInfo{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: #eaf2ff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="row">
+      <div class="chip">
+        <label>电路</label>
+        <select id="circuitSelect">
+          <option value="CE">共射 CE</option>
+          <option value="CC">共集 CC（射极跟随器）</option>
+          <option value="CB">共基 CB</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <label>Power</label>
+        <button id="powerBtn" class="toggle off">OFF</button>
+        <label>HOLD</label>
+        <button id="holdBtn" class="toggle off">OFF</button>
+      </div>
+
+      <div class="chip">
+        <label>模型</label>
+        <select id="modelSelect">
+          <option value="FAST">教学快速（默认）</option>
+          <option value="ENH">增强非线性（尽力稳）</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <label>牵制</label>
+        <select id="constraintSelect">
+          <option value="STRICT">严格（不允许超限）</option>
+          <option value="EXPLORE">探索（允许超限但告警）</option>
+        </select>
+      </div>
+
+      <div class="chip">
+        <label>预设场景</label>
+        <select id="presetSelect"></select>
+        <button id="applyPresetBtn" class="btn-ghost">应用</button>
+      </div>
+
+      <button id="autoCenterBtn" class="btn-good">自动调偏置到居中</button>
+      <button id="autoJustBtn" class="btn-warn">刚好不失真</button>
+
+      <div class="spacer"></div>
+
+      <button id="resetBtn" class="btn-ghost">Reset</button>
+      <button id="revertBtn" class="btn-ghost">Revert</button>
+      <button id="exportBtn" class="btn-ghost">Export JSON</button>
+      <button id="importBtn" class="btn-ghost">Import JSON</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" />
+      <button id="pngWaveBtn" class="btn-ghost">Export PNG（波形）</button>
+      <button id="pngCharBtn" class="btn-ghost">Export PNG（特性）</button>
+    </div>
+
+    <div id="globalBanner" class="banner"></div>
+
+    <div class="kpis" id="kpiPanel">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="left">
+      <div class="card">
+        <h3>动态电路示意图（SVG） <span id="wmTag" class="watermark wm-nosig">NO SIGNAL</span></h3>
+        <div class="subtle">元件参数、Q 点与状态水印实时联动；<span class="kbd">HOLD</span> 时冻结画面（参数可改但不应用）。</div>
+        <div class="svgWrap" id="svgWrap"></div>
+      </div>
+
+      <div class="card">
+        <h3>参数（仅显示当前电路相关项）</h3>
+        <div class="subtle">内部统一 SI 单位计算；界面自动进行 mV/µA/kΩ 友好显示；Ui 最大允许值 Ui<sub>max</sub> 通过数值扫描/二分求解得到。</div>
+        <div id="pendingHint" class="banner warn" style="display:none;margin-top:10px;">
+          已冻结（HOLD）：你修改了参数，但图像不会更新。解除 HOLD 后将立即按当前参数刷新。
+        </div>
+        <div class="paramGrid" id="paramPanel" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <h3>图表区（至少 5 张）</h3>
+        <div class="subtle">ui(t)、uo(t)（支持含直流/AC耦合）、输入特性 + Q 点、输出特性族 + 负载线 + 轨迹、传输特性 uo-ui（含线性段提示）。</div>
+        <div class="plotGrid" style="margin-top:10px;">
+          <div id="plotUi" class="plot"></div>
+          <div id="plotUo" class="plot"></div>
+          <div id="plotIn" class="plot tall"></div>
+          <div id="plotTransfer" class="plot tall"></div>
+          <div id="plotOut" class="plot full"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>模型说明 / 简化假设（避免误当精确 SPICE）</h3>
+        <div class="footerInfo">
+          <ul>
+            <li><b>教学近似模型</b>：输入采用指数关系（类似二极管方程），输出采用简化的 IC–VCE 曲线族（带 Early 近似 VA，含饱和“拐点”）。</li>
+            <li><b>耦合电容的处理</b>：DC 计算时视为开路；AC/瞬时波形中，使用“去直流电流”近似（例如 RL 电流按 <span class="mono">(v - VQ)/RL</span> 计算），让平均值仍与 Q 点一致，便于课堂讲解直流/交流负载线。</li>
+            <li><b>削顶失真</b>：当瞬时状态触及截止（IC≈0）或饱和（VCE≈VCE(sat)）时自动限幅，能演示先单边削顶再双边削顶，并提示“先截止/先饱和”。</li>
+            <li><b>增强模式</b>：尝试更强非线性求解；若出现数值溢出/异常，会自动降级回快速模式并给出提示（避免崩溃/卡死）。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card">
+        <h3>诊断 / 自测面板</h3>
+        <div class="subtle">页面加载后自动执行 runSelfTests()：状态机、DC 求解、削顶演化、动态牵制、一致性与性能等。若 FAIL：顶部将出现红条。</div>
+        <div class="testList" id="testPanel"></div>
+      </div>
+
+      <div class="card">
+        <h3>当前诊断（运行中）</h3>
+        <div id="liveDiag" class="subtle"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/**
+ * ============================================================
+ *  BJT 三基本放大电路交互教学工具（单文件 / Plotly CDN）
+ *  - 电路：CE / CC(射随) / CB
+ *  - 强制：SVG 电路图 + Q 点 + 5 张图 + Power/HOLD 状态机
+ *  - 强制：参数牵制（Ui_max 数值扫描/二分）+ 严格/探索模式
+ *  - 强制：纯函数结构 + 自测 + 失败降级（不崩溃）
+ * ============================================================
+ */
+
+/* ----------------------------- 工具：深拷贝 & 数学 ----------------------------- */
+const deepCopy = (x)=> JSON.parse(JSON.stringify(x));
+const clamp = (x, a, b)=> Math.max(a, Math.min(b, x));
+const isFiniteNum = (x)=> Number.isFinite(x) && !Number.isNaN(x);
+const lerp = (a,b,t)=> a+(b-a)*t;
+const parallel = (R1,R2)=>{
+  if (!isFinite(R1) || R1<=0) return R2;
+  if (!isFinite(R2) || R2<=0) return R1;
+  return 1/(1/R1 + 1/R2);
+};
+const nowMs = ()=> (performance && performance.now) ? performance.now() : Date.now();
+
+/* ----------------------------- 单位显示：友好格式 ----------------------------- */
+function formatSI(value, unit, digits=3){
+  if (!isFiniteNum(value)) return "—";
+  const abs = Math.abs(value);
+  const prefixes = [
+    {p:1e-12, s:"p"}, {p:1e-9, s:"n"}, {p:1e-6, s:"µ"}, {p:1e-3, s:"m"},
+    {p:1, s:""}, {p:1e3, s:"k"}, {p:1e6, s:"M"}, {p:1e9, s:"G"}
+  ];
+  // choose best prefix
+  let chosen = prefixes[4];
+  for (let i=0;i<prefixes.length;i++){
+    if (abs>=prefixes[i].p) chosen = prefixes[i];
+  }
+  // keep numbers from being too small
+  if (abs===0) chosen = prefixes[4];
+  const v = value / chosen.p;
+  const d = (Math.abs(v) < 10) ? digits : (Math.abs(v) < 100 ? Math.max(2,digits-1) : Math.max(1,digits-2));
+  return `${v.toFixed(d)} ${chosen.s}${unit}`;
+}
+function fmtOhm(R){ return formatSI(R, "Ω"); }
+function fmtV(v){ return formatSI(v, "V"); }
+function fmtA(i){ return formatSI(i, "A"); }
+function fmtW(p){ return formatSI(p, "W"); }
+function fmtHz(f){ return formatSI(f, "Hz"); }
+
+/* ----------------------------- 物理常数 / 默认器件 ----------------------------- */
+const PHYS = {
+  VT: 0.02585,     // 25.85mV
+  IS: 1e-15,       // chosen to get ~mA around 0.7V
+  VBE_CUTOFF: 0.50 // teaching threshold
+};
+
+/* ----------------------------- 状态机（Power/HOLD） -----------------------------
+ * 要求：严格按优先级实现
+ * - Power OFF 永远优先于 HOLD：OFF => NO SIGNAL + 停止动画
+ * - HOLD：冻结所有图、Q 点、特性曲线与 SVG
+ * - OFF->ON：若 HOLD=OFF => RUN；若 HOLD=ON => 计算一次并冻结
+ */
+function fsmTransition(state, event){
+  // state: {powerSwitch:boolean, holdSwitch:boolean, mode:"OFF"|"RUN"|"HOLD"}
+  const s = {...state};
+
+  if (event.type==="SET_POWER"){
+    s.powerSwitch = !!event.value;
+  }
+  if (event.type==="SET_HOLD"){
+    s.holdSwitch = !!event.value;
+  }
+
+  // priority rule
+  if (!s.powerSwitch){
+    s.mode = "OFF";
+    return s;
+  }
+  // power ON
+  s.mode = s.holdSwitch ? "HOLD" : "RUN";
+  return s;
+}
+
+/* ----------------------------- BJT 模型（简化） ----------------------------- */
+function bjtIcFromVbeVce(params, vbe, vce, modelMode){
+  // exponential input + optional Early effect
+  const VT = PHYS.VT;
+  const IS = PHYS.IS;
+  const VA = Math.max(1, params.VA || 1e9);
+
+  // keep exponent safe
+  const arg = clamp(vbe/VT, -50, 50);
+  let ic = IS * Math.exp(arg);
+
+  // quick mode can ignore Early (still consistent enough for teaching)
+  if (modelMode==="ENH"){
+    const vceEff = Math.max(0, vce);
+    ic *= (1 + vceEff/VA);
+  }
+  return ic;
+}
+
+function outputIcCurveFromIb(params, ib, vce){
+  // simplified output family: knee near VCEsat, Early effect above knee
+  const beta = Math.max(1, params.beta);
+  const VA = Math.max(1, params.VA || 1e9);
+  const VCEsat = Math.max(0.02, params.VCEsat);
+
+  const ic0 = beta * Math.max(0, ib);
+  const knee = VCEsat + 0.06;
+
+  if (vce <= 0) return 0;
+  if (vce < knee){
+    // in saturation-ish region, current rises with VCE
+    return ic0 * (vce / knee);
+  }
+  // active-ish region + Early
+  return ic0 * (1 + (vce - knee)/VA);
+}
+
+/* ----------------------------- 核心纯函数 1：DC 求解 -----------------------------
+ * solveDC(params, circuitType) -> {ok, VCEQ, ICQ, IBQ, IEQ, VBEQ, VC, VE, region, diagnostics}
+ * 说明：DC 时耦合电容开路 -> RL 不参与 DC
+ */
+function solveDC(params, circuitType){
+  const p = deepCopy(params);
+  const diag = [];
+  const out = {
+    ok:false, region:"unknown",
+    VCEQ:NaN, ICQ:NaN, IBQ:NaN, IEQ:NaN,
+    VBEQ:NaN, VC:NaN, VE:NaN, VB:NaN,
+    diagnostics: diag
+  };
+
+  try{
+    const modelMode = "ENH"; // DC 用更“完整”版本，保证两模式 Q 点一致
+    const VCC = p.VCC;
+    const beta = Math.max(1, p.beta);
+    const VCEsat = Math.max(0.02, p.VCEsat);
+
+    // helper: bisection for IC
+    function bisectIC(getMid, hi0){
+      let lo = 0;
+      let hi = hi0;
+      let a = getMid(lo); let fa = a.icm - lo;
+      let b = getMid(hi); let fb = b.icm - hi;
+
+      // expand hi until bracket or hit guard
+      let guard=0;
+      while (fb > 0 && guard < 30){
+        hi *= 1.7;
+        if (hi > Math.max(2, p.IC_max*20)) break;
+        b = getMid(hi);
+        fb = b.icm - hi;
+        guard++;
+      }
+
+      // if cannot bracket, fallback: clamp to a reasonable fixed point
+      if (!(fa>=0 && fb<=0)){
+        // choose the smaller of hi and model current at lo
+        const icGuess = clamp(a.icm, 0, hi);
+        const m = getMid(icGuess);
+        return {ic: icGuess, mid:m, bracketed:false};
+      }
+
+      let mid = 0, m=null;
+      for (let i=0;i<42;i++){
+        mid = 0.5*(lo+hi);
+        m = getMid(mid);
+        const fm = m.icm - mid;
+        if (!isFiniteNum(fm)) { hi = mid; continue; }
+        if (fm > 0) lo = mid;
+        else hi = mid;
+      }
+      return {ic: 0.5*(lo+hi), mid: getMid(0.5*(lo+hi)), bracketed:true};
+    }
+
+    if (circuitType==="CE"){
+      const RC = Math.max(1, p.RC);
+      const RE = Math.max(0, p.RE);
+      const VB = p.VBQ; // direct bias knob
+      out.VB = VB;
+
+      function getMid(ic){
+        const ib = ic/beta;
+        const ie = ic + ib;
+        const ve = (RE>0) ? ie*RE : 0;
+        const vc = VCC - ic*RC; // DC: RL open
+        const vce = vc - ve;
+        const vbe = VB - ve;
+        const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+        return {ib, ie, ve, vc, vce, vbe, icm};
+      }
+
+      const hi0 = Math.min(Math.max(0.03, p.IC_max*2), 0.5);
+      let sol = bisectIC(getMid, hi0);
+      let ic = sol.ic;
+      let m = sol.mid;
+
+      // saturation clamp
+      if (m.vce < VCEsat){
+        const ib = ic/beta;
+        const ie = ic + ib;
+        const ve = (RE>0) ? ie*RE : 0;
+        const vc = ve + VCEsat;
+        ic = Math.max(0, (VCC - vc)/RC);
+        m = getMid(ic);
+        out.region = "saturation";
+      } else if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+        ic = 0;
+        m = getMid(ic);
+        out.region = "cutoff";
+      } else {
+        out.region = "active";
+      }
+
+      out.ICQ = ic;
+      out.IBQ = ic/beta;
+      out.IEQ = out.ICQ + out.IBQ;
+      out.VE = (RE>0)? out.IEQ*RE : 0;
+      out.VC = VCC - out.ICQ*RC;
+      out.VCEQ = out.VC - out.VE;
+      out.VBEQ = out.VB - out.VE;
+    }
+
+    if (circuitType==="CC"){
+      const RE = Math.max(1, p.RE);
+      const VB = p.VBQ;
+      out.VB = VB;
+
+      function getMid(ic){
+        const ib = ic/beta;
+        const ie = ic + ib;
+        // DC: RL open, so VE from RE only
+        const ve = ie*RE;
+        const vce = VCC - ve; // collector at VCC
+        const vbe = VB - ve;
+        const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+        return {ib, ie, ve, vc:VCC, vce, vbe, icm};
+      }
+
+      const hi0 = Math.min(Math.max(0.02, p.IC_max*2), 0.5);
+      let sol = bisectIC(getMid, hi0);
+      let ic = sol.ic;
+      let m = sol.mid;
+
+      if (m.vce < VCEsat){
+        // saturation: VE clamps
+        const ve = VCC - VCEsat;
+        const ie = ve/RE;
+        ic = ie / (1 + 1/beta);
+        m = getMid(ic);
+        out.region = "saturation";
+      } else if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+        ic = 0; m = getMid(ic);
+        out.region = "cutoff";
+      } else out.region = "active";
+
+      out.ICQ = ic;
+      out.IBQ = ic/beta;
+      out.IEQ = out.ICQ + out.IBQ;
+      out.VE = out.IEQ*RE;
+      out.VC = VCC;
+      out.VCEQ = out.VC - out.VE;
+      out.VBEQ = out.VB - out.VE;
+    }
+
+    if (circuitType==="CB"){
+      // Common base: base fixed VBQ, emitter has RE to ground (bias), input later drives emitter around VEQ.
+      const RC = Math.max(1, p.RC);
+      const RE = Math.max(1, p.RE);
+      const VB = p.VBQ;
+      out.VB = VB;
+
+      function getMid(ic){
+        const ib = ic/beta;
+        const ie = ic + ib;
+        const ve = ie*RE;  // DC: emitter resistor sets VE
+        const vc = VCC - ic*RC;
+        const vce = vc - ve;
+        const vbe = VB - ve;
+        const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+        return {ib, ie, ve, vc, vce, vbe, icm};
+      }
+
+      const hi0 = Math.min(Math.max(0.03, p.IC_max*2), 0.5);
+      let sol = bisectIC(getMid, hi0);
+      let ic = sol.ic;
+      let m = sol.mid;
+
+      if (m.vce < VCEsat){
+        const vc = m.ve + VCEsat;
+        ic = Math.max(0, (VCC - vc)/RC);
+        m = getMid(ic);
+        out.region = "saturation";
+      } else if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+        ic = 0; m = getMid(ic);
+        out.region = "cutoff";
+      } else out.region = "active";
+
+      out.ICQ = ic;
+      out.IBQ = ic/beta;
+      out.IEQ = out.ICQ + out.IBQ;
+      out.VE = out.IEQ*RE;
+      out.VC = VCC - out.ICQ*RC;
+      out.VCEQ = out.VC - out.VE;
+      out.VBEQ = out.VB - out.VE;
+    }
+
+    // sanity checks
+    const fields = ["VCEQ","ICQ","IBQ","IEQ","VBEQ","VC","VE"];
+    for (const k of fields){
+      if (!isFiniteNum(out[k])) diag.push(`DC: ${k} 非有限值（NaN/Inf）`);
+    }
+    if (out.ICQ < -1e-12) diag.push("DC: ICQ<0（被夹断）");
+    if (out.VCEQ < -0.5) diag.push("DC: VCEQ<0（参数可能极端）");
+
+    out.ok = diag.length===0;
+    if (!out.ok) out.region = "invalid";
+    return out;
+  } catch(e){
+    out.ok = false;
+    out.region = "invalid";
+    out.diagnostics.push(`DC 求解异常：${String(e)}`);
+    return out;
+  }
+}
+
+/* ----------------------------- 核心纯函数 2：特性曲线 -----------------------------
+ * genCharacteristics(params, circuitType, dc) ->
+ * { inputCurve, outputCurves, loadLines, regions, notes }
+ */
+function genCharacteristics(params, circuitType, dc){
+  const p = deepCopy(params);
+  const beta = Math.max(1, p.beta);
+  const VCC = p.VCC;
+  const VCEsat = Math.max(0.02, p.VCEsat);
+
+  // input curve
+  const inX = [];
+  const inY = [];
+  let inTitle = "";
+  let inXLabel = "";
+  let inYLabel = "";
+  let qx = NaN, qy = NaN;
+
+  // For CB: default IE–VEB view; optional unified IB–VBE view
+  const cbUnified = !!p.cbUnifiedView;
+
+  const vMin = 0.48, vMax = 0.88;
+  const N = 180;
+  for (let i=0;i<N;i++){
+    const v = lerp(vMin, vMax, i/(N-1));
+    if (circuitType==="CB" && !cbUnified){
+      // IE vs VEB
+      const ie = (1 + 1/beta) * PHYS.IS * Math.exp(clamp(v/PHYS.VT, -50, 50));
+      inX.push(v);
+      inY.push(ie);
+    } else {
+      // IB vs VBE
+      const ic = PHYS.IS * Math.exp(clamp(v/PHYS.VT, -50, 50));
+      const ib = ic / beta;
+      inX.push(v);
+      inY.push(ib);
+    }
+  }
+  if (circuitType==="CB" && !cbUnified){
+    inTitle = "输入特性：IE – VEB（共基更自然视角）";
+    inXLabel = "VEB (V)";
+    inYLabel = "IE (A)";
+    qx = dc.VBEQ; // VEB = VBE
+    qy = dc.IEQ;
+  } else {
+    inTitle = "输入特性：IB – VBE";
+    inXLabel = "VBE (V)";
+    inYLabel = "IB (A)";
+    qx = dc.VBEQ;
+    qy = dc.IBQ;
+  }
+
+  // output curve family: IC-VCE for several IB
+  const outCurves = [];
+  const ibQ = Math.max(0, dc.IBQ);
+  const ibSet = [
+    0,
+    ibQ*0.25,
+    ibQ*0.5,
+    ibQ,
+    ibQ*2,
+    ibQ*4
+  ].map(x=> +x.toFixed(12));
+
+  const vceX = [];
+  const VCEmax = Math.max(0.2, VCC);
+  const M = 220;
+  for (let i=0;i<M;i++){
+    vceX.push(lerp(0, VCEmax, i/(M-1)));
+  }
+  for (const ib of ibSet){
+    const y = vceX.map(vce=> outputIcCurveFromIb(p, ib, vce));
+    outCurves.push({ib, vce: vceX, ic: y});
+  }
+
+  // load lines
+  // DC: coupling capacitors open, so RL ignored
+  // AC: RL participates as (node - nodeQ)/RL -> slope uses parallel where applicable
+  function dcLoadLinePoints(){
+    // Return points on IC-VCE plane (line) for plotting.
+    const xs = [0, VCC];
+    const ys = [];
+    for (const VCE of xs){
+      let denom = 1e-9;
+      if (circuitType==="CE" || circuitType==="CB"){
+        denom = Math.max(1, p.RC) + (Math.max(0, p.RE) * (1 + 1/p.beta));
+      } else if (circuitType==="CC"){
+        denom = (Math.max(1, p.RE) * (1 + 1/p.beta));
+      }
+      const ic = (VCC - VCE) / denom;
+      ys.push(Math.max(0, ic));
+    }
+    return {VCE: xs, IC: ys};
+  }
+  function acLoadLinePoints(){
+    // line through Q point with slope defined by AC equivalent
+    const xs = [];
+    const ys = [];
+    const n=2;
+    // compute effective resistance in AC seen in VCE-IC relation
+    let Rac = 1e9;
+    if (circuitType==="CE" || circuitType==="CB"){
+      const Rcol = parallel(p.RC, p.RL);
+      Rac = Rcol + (Math.max(0, p.RE) * (1 + 1/p.beta));
+    } else if (circuitType==="CC"){
+      const Rem = parallel(p.RE, p.RL);
+      Rac = Rem * (1 + 1/p.beta);
+    }
+    // choose two points around Q: at VCE=0 and VCE=VCC
+    for (let i=0;i<n;i++){
+      const VCE = (i===0) ? 0 : VCC;
+      const IC = dc.ICQ + (dc.VCEQ - VCE)/Math.max(1e-6, Rac);
+      xs.push(VCE);
+      ys.push(Math.max(0, IC));
+    }
+    return {VCE: xs, IC: ys, Rac};
+  }
+
+  // regions for shading
+  const regions = {
+    saturation: {x0:0, x1:VCEsat},
+    cutoffIC: Math.max(1e-9, dc.ICQ*0.06) // a thin strip near IC=0 for visualization
+  };
+
+  // margins (headroom) along AC load line (teaching)
+  const acLL = acLoadLinePoints();
+  const Rac = acLL.Rac;
+  const VCE_cutoff = dc.VCEQ + dc.ICQ * Rac; // when IC -> 0 along AC line
+  const VCE_sat = VCEsat;
+  const marginToCutoff = Math.max(0, VCE_cutoff - dc.VCEQ);
+  const marginToSat = Math.max(0, dc.VCEQ - VCE_sat);
+
+  return {
+    inputCurve: {x: inX, y: inY, title: inTitle, xLabel: inXLabel, yLabel: inYLabel, q: {x: qx, y: qy}},
+    outputCurves: {vceX, curves: outCurves, ibSet},
+    loadLines: {dc: dcLoadLinePoints(), ac: acLL, margins: {marginToCutoff, marginToSat, VCE_cutoff}},
+    regions,
+    notes: []
+  };
+}
+
+/* ----------------------------- 求解瞬时点（用于波形/轨迹） -----------------------------
+ * 使用“耦合电容去直流电流”近似：
+ * - collector 端：i_RL = (vC - VCQ)/RL，保证平均 i_RL=0
+ * - emitter 端（CC）：i_RL = (vE - VEQ)/RL
+ *
+ * 注意：为避免增强模式不稳定，提供：Newton 尝试 + 失败回退 bisection + 异常自动降级。
+ */
+function solveInstant(params, circuitType, dc, input, modelMode, options){
+  const p = params;
+  const beta = Math.max(1, p.beta);
+  const VCC = p.VCC;
+  const VCEsat = Math.max(0.02, p.VCEsat);
+  const RL = (options && options.useRL) ? p.RL : Infinity;
+
+  // bisection helper with bracket expand
+  function robustSolveIC(getMid, hi0){
+    let lo=0, hi=hi0;
+    let mLo=getMid(lo), fLo=mLo.icm-lo;
+    let mHi=getMid(hi), fHi=mHi.icm-hi;
+
+    let guard=0;
+    while (fHi>0 && guard<25){
+      hi*=1.7;
+      if (hi>Math.max(2, p.IC_max*30)) break;
+      mHi=getMid(hi); fHi=mHi.icm-hi;
+      guard++;
+    }
+    if (!(fLo>=0 && fHi<=0)){
+      // fallback: clamp to model at low end
+      const icGuess = clamp(mLo.icm, 0, hi);
+      return {ic: icGuess, m: getMid(icGuess), ok:false};
+    }
+    let mid=0, m=null;
+    for (let i=0;i<34;i++){
+      mid=0.5*(lo+hi);
+      m=getMid(mid);
+      const f=m.icm-mid;
+      if (!isFiniteNum(f)){ hi=mid; continue; }
+      if (f>0) lo=mid; else hi=mid;
+    }
+    const ic=0.5*(lo+hi);
+    return {ic, m:getMid(ic), ok:true};
+  }
+
+  if (circuitType==="CE"){
+    const RC = Math.max(1, p.RC);
+    const RE = Math.max(0, p.RE);
+    const VB = input.VB;
+    const VCQ = dc.VC;
+
+    const invRC = 1/RC;
+    const invRL = (isFinite(RL) && RL>0) ? 1/RL : 0;
+    const denom = invRC + invRL;
+
+    function nodeVCFromIC(ic){
+      // (VCC-VC)/RC = IC + (VC-VCQ)/RL
+      if (invRL===0) return VCC - ic*RC;
+      return (VCC*invRC + VCQ*invRL - ic) / denom;
+    }
+
+    function getMid(ic){
+      const ib = ic/beta;
+      const ie = ic+ib;
+      const ve = (RE>0) ? ie*RE : 0;
+      const vc = nodeVCFromIC(ic);
+      const vce = vc - ve;
+      const vbe = VB - ve;
+      const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+      return {ib, ie, ve, vc, vce, vbe, icm};
+    }
+
+    const hi0 = Math.min(Math.max(0.02, p.IC_max*2), 0.6);
+    let sol = robustSolveIC(getMid, hi0);
+    let ic = sol.ic;
+    let m = sol.m;
+
+    // saturation clamp (force VCE>=VCEsat)
+    if (m.vce < VCEsat){
+      const ib = ic/beta;
+      const ie = ic+ib;
+      const ve = (RE>0)? ie*RE : 0;
+      const vc = ve + VCEsat;
+
+      const iRC = (VCC - vc)/RC;
+      const iRL = (invRL===0) ? 0 : (vc - VCQ)/RL;
+      ic = Math.max(0, iRC - iRL);
+      m = getMid(ic);
+      return {ic, ib:ic/beta, ie:ic+ic/beta, ve:m.ve, vc, vce:vc-m.ve, vbe:VB-m.ve, region:"saturation", solverOk: sol.ok};
+    }
+    // cutoff
+    if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+      ic = 0;
+      m = getMid(ic);
+      return {ic:0, ib:0, ie:0, ve:m.ve, vc:m.vc, vce:m.vce, vbe:m.vbe, region:"cutoff", solverOk: sol.ok};
+    }
+    return {ic, ib:m.ib, ie:m.ie, ve:m.ve, vc:m.vc, vce:m.vce, vbe:m.vbe, region:"active", solverOk: sol.ok};
+  }
+
+  if (circuitType==="CC"){
+    const RE = Math.max(1, p.RE);
+    const VB = input.VB;
+    const VEQ = dc.VE;
+
+    // emitter KCL: IE = VE/RE + (VE-VEQ)/RL
+    const invRE = 1/RE;
+    const invRL = (isFinite(RL) && RL>0) ? 1/RL : 0;
+    const denom = invRE + invRL;
+
+    function veFromIE(ie){
+      if (invRL===0) return ie*RE;
+      // VE*(1/RE+1/RL) - VEQ/RL = IE
+      return (ie + VEQ*invRL) / denom;
+    }
+
+    function getMid(ic){
+      const ib = ic/beta;
+      const ie = ic+ib;
+      const ve = veFromIE(ie);
+      const vce = VCC - ve;
+      const vbe = VB - ve;
+      const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+      return {ib, ie, ve, vc:VCC, vce, vbe, icm};
+    }
+
+    const hi0 = Math.min(Math.max(0.02, p.IC_max*2), 0.6);
+    let sol = robustSolveIC(getMid, hi0);
+    let ic = sol.ic;
+    let m = sol.m;
+
+    if (m.vce < VCEsat){
+      const ve = VCC - VCEsat;
+      // compute IE from KCL
+      const ie = ve*invRE + (invRL===0 ? 0 : (ve - VEQ)*invRL);
+      ic = ie / (1 + 1/beta);
+      m = getMid(ic);
+      return {ic, ib:ic/beta, ie, ve, vc:VCC, vce:VCC-ve, vbe:VB-ve, region:"saturation", solverOk: sol.ok};
+    }
+    if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+      return {ic:0, ib:0, ie:0, ve:0, vc:VCC, vce:VCC, vbe:VB, region:"cutoff", solverOk: sol.ok};
+    }
+    return {ic, ib:m.ib, ie:m.ie, ve:m.ve, vc:VCC, vce:m.vce, vbe:m.vbe, region:"active", solverOk: sol.ok};
+  }
+
+  if (circuitType==="CB"){
+    const RC = Math.max(1, p.RC);
+    const VB = p.VBQ; // base fixed for CB
+    const VE = input.VE; // emitter driven around VEQ by ui(t)
+    const VCQ = dc.VC;
+
+    const invRC = 1/RC;
+    const invRL = (isFinite(RL) && RL>0) ? 1/RL : 0;
+    const denom = invRC + invRL;
+
+    function nodeVCFromIC(ic){
+      if (invRL===0) return VCC - ic*RC;
+      return (VCC*invRC + VCQ*invRL - ic) / denom;
+    }
+
+    function getMid(ic){
+      const ib = ic/beta;
+      const ie = ic+ib;
+      const vc = nodeVCFromIC(ic);
+      const vce = vc - VE;
+      const vbe = VB - VE;
+      const icm = bjtIcFromVbeVce(p, vbe, vce, modelMode);
+      return {ib, ie, ve:VE, vc, vce, vbe, icm};
+    }
+
+    const hi0 = Math.min(Math.max(0.02, p.IC_max*2), 0.6);
+    let sol = robustSolveIC(getMid, hi0);
+    let ic = sol.ic;
+    let m = sol.m;
+
+    if (m.vce < VCEsat){
+      const vc = VE + VCEsat;
+      const iRC = (VCC - vc)/RC;
+      const iRL = (invRL===0) ? 0 : (vc - VCQ)/RL;
+      ic = Math.max(0, iRC - iRL);
+      m = getMid(ic);
+      return {ic, ib:ic/beta, ie:ic+ic/beta, ve:VE, vc, vce:vc-VE, vbe:VB-VE, region:"saturation", solverOk: sol.ok};
+    }
+    if (m.vbe < PHYS.VBE_CUTOFF || ic < 1e-9){
+      return {ic:0, ib:0, ie:0, ve:VE, vc:nodeVCFromIC(0), vce:nodeVCFromIC(0)-VE, vbe:VB-VE, region:"cutoff", solverOk: sol.ok};
+    }
+    return {ic, ib:m.ib, ie:m.ie, ve:VE, vc:m.vc, vce:m.vce, vbe:m.vbe, region:"active", solverOk: sol.ok};
+  }
+
+  return {ic:0, ib:0, ie:0, ve:0, vc:0, vce:0, vbe:0, region:"unknown", solverOk:false};
+}
+
+/* ----------------------------- 核心纯函数 3：波形生成 -----------------------------
+ * genWaveforms(params, circuitType, dc, modelMode) ->
+ * { t, ui, uoNode, uoAC, vce, ic, regionArr, clipInfo, metrics }
+ */
+function genWaveforms(params, circuitType, dc, modelMode){
+  const p = deepCopy(params);
+  const f = Math.max(0.1, p.f);
+  const w = 2*Math.PI*f;
+  const Ui = Math.max(0, p.Ui);
+  const cycles = Math.max(1, Math.round(p.cycles || 2));
+  const n = Math.max(220, Math.round(p.samples || 420));
+  const T = 1/f;
+  const tEnd = cycles*T;
+
+  const t = new Array(n);
+  const ui = new Array(n);
+  const uo = new Array(n);
+  const uoAC = new Array(n);
+  const vce = new Array(n);
+  const ic = new Array(n);
+  const regionArr = new Array(n);
+
+  let anyCut=false, anySat=false;
+  let solverOkCount=0;
+
+  for (let i=0;i<n;i++){
+    const tt = (i/(n-1))*tEnd;
+    t[i]=tt;
+    const uin = Ui*Math.sin(w*tt);
+    ui[i]=uin;
+
+    let sol;
+    if (circuitType==="CE"){
+      const VB = p.VBQ + uin;
+      sol = solveInstant(p, circuitType, dc, {VB}, modelMode, {useRL:true});
+      uo[i] = sol.vc;         // output node voltage
+      vce[i] = sol.vce;
+      ic[i] = sol.ic;
+      regionArr[i] = sol.region;
+    } else if (circuitType==="CC"){
+      const VB = p.VBQ + uin;
+      sol = solveInstant(p, circuitType, dc, {VB}, modelMode, {useRL:true});
+      uo[i] = sol.ve;         // output at emitter
+      vce[i] = sol.vce;
+      ic[i] = sol.ic;
+      regionArr[i] = sol.region;
+    } else if (circuitType==="CB"){
+      // CB: emitter driven around VEQ by input voltage source (teaching-friendly)
+      const VE = dc.VE + uin; // ui(t) applied to emitter node
+      sol = solveInstant(p, circuitType, dc, {VE}, modelMode, {useRL:true});
+      uo[i] = sol.vc;
+      vce[i] = sol.vce;
+      ic[i] = sol.ic;
+      regionArr[i] = sol.region;
+    }
+
+    if (sol && sol.solverOk) solverOkCount++;
+    if (regionArr[i]==="cutoff") anyCut=true;
+    if (regionArr[i]==="saturation") anySat=true;
+  }
+
+  // AC coupling for oscilloscope: remove mean
+  const meanUo = uo.reduce((a,b)=>a+b,0)/n;
+  for (let i=0;i<n;i++) uoAC[i] = uo[i] - meanUo;
+
+  // clip classification
+  let clipType = "none";
+  if (anyCut && anySat) clipType = "both";
+  else if (anyCut || anySat) clipType = "single";
+
+  // which side is "first" depends on Q margins
+  // compute margins from characteristics (AC load line)
+  const chars = genCharacteristics(p, circuitType, dc);
+  const mCut = chars.loadLines.margins.marginToCutoff;
+  const mSat = chars.loadLines.margins.marginToSat;
+  const firstClip = (mCut < mSat) ? "cutoff-first" : "saturation-first";
+
+  // metrics for uo(t) on node voltage (and AC)
+  function metricsOf(arr){
+    const min = Math.min(...arr);
+    const max = Math.max(...arr);
+    const pp = max-min;
+    const rms = Math.sqrt(arr.reduce((s,x)=>s+x*x,0)/arr.length);
+    const mean = arr.reduce((s,x)=>s+x,0)/arr.length;
+    return {min,max,pp,rms,mean};
+  }
+  const mNode = metricsOf(uo);
+  const mAC = metricsOf(uoAC);
+
+  // average VCE should match VCEQ for node-voltage display (consistency check)
+  const meanVCE = vce.reduce((a,b)=>a+b,0)/n;
+
+  return {
+    t, ui, uoNode: uo, uoAC, vce, ic, regionArr,
+    clipInfo: {clipType, anyCut, anySat, firstClip, solverOkRatio: solverOkCount/n, meanVCE},
+    metrics: {node:mNode, ac:mAC}
+  };
+}
+
+/* ----------------------------- 核心纯函数 4：动态牵制（Ui_max） -----------------------------
+ * calcDynamicBounds(params, circuitType, dc) -> {UiMax, limitingReason, details}
+ * 判据至少包含：
+ *  - 截止/饱和边界（VCE(t) >= VCEsat+margin）
+ *  - 过流限制 IC<=IC_max
+ *  - 功耗限制 P=VCE*IC（max 或 mean）
+ * 严格模式：会自动 clamp
+ * 探索模式：允许超限但红色告警
+ */
+function calcDynamicBounds(params, circuitType, dc){
+  const p = deepCopy(params);
+  const marginV = 0.10; // teaching margin
+  const ICmax = Math.max(1e-6, p.IC_max);
+  const Pmax = Math.max(1e-6, p.P_max);
+
+  // check a candidate Ui
+  function checkUi(Ui){
+    const pp = {...p, Ui, cycles:1, samples:220};
+    const wf = genWaveforms(pp, circuitType, dc, "FAST"); // bounds search uses FAST for speed + robustness
+    const minVCE = Math.min(...wf.vce);
+    const maxIC = Math.max(...wf.ic);
+    const PinstMax = Math.max(...wf.vce.map((v,idx)=> Math.max(0,v)*Math.max(0,wf.ic[idx])));
+    const Pavg = wf.vce.reduce((s,v,idx)=> s + Math.max(0,v)*Math.max(0,wf.ic[idx]), 0)/wf.vce.length;
+
+    const reasons=[];
+    // saturation boundary: vce < VCEsat + margin
+    if (minVCE < p.VCEsat + marginV) reasons.push("saturation");
+    // cutoff boundary: we treat "cutoff" as ic~0 OR vce near top; but more robust: any sample region=cutoff
+    if (wf.clipInfo.anyCut) reasons.push("cutoff");
+    if (maxIC > ICmax*(1+1e-9)) reasons.push("overcurrent");
+    if (PinstMax > Pmax*(1+1e-9) || Pavg > Pmax*(1+1e-9)) reasons.push("overpower");
+
+    const ok = reasons.length===0;
+    return {ok, reasons, stats:{minVCE,maxIC,PinstMax,Pavg}, wf};
+  }
+
+  // find upper bound
+  let lo = 0;
+  let hi = Math.max(0.001, p.Ui || 0.02);
+  let lastOk = checkUi(lo); // always ok
+  let chkHi = checkUi(hi);
+
+  let guard = 0;
+  while (chkHi.ok && hi < 5 && guard < 18){
+    lo = hi;
+    hi *= 1.7;
+    chkHi = checkUi(hi);
+    guard++;
+  }
+  // if even hi is ok, set UiMax at hi (cap)
+  if (chkHi.ok){
+    return {UiMax: hi, limitingReason: "none", details: {note:"未在上限扫描范围内触发限制（已到搜索上限）"}};
+  }
+
+  // bisection between lo (ok) and hi (fail)
+  for (let i=0;i<18;i++){
+    const mid = 0.5*(lo+hi);
+    const chk = checkUi(mid);
+    if (chk.ok) lo = mid;
+    else hi = mid;
+  }
+  const UiMax = lo;
+
+  // determine dominant reason by checking slightly above UiMax
+  const chk2 = checkUi(UiMax*1.02 + 1e-6);
+  const priority = ["cutoff","saturation","overcurrent","overpower"];
+  let limitingReason = chk2.reasons[0] || "none";
+  for (const r of priority){
+    if (chk2.reasons.includes(r)){ limitingReason = r; break; }
+  }
+  return {UiMax, limitingReason, details: {at: chk2.stats, reasons: chk2.reasons}};
+}
+
+/* ----------------------------- UI 定义：参数项（每电路独立记忆） ----------------------------- */
+const PARAM_DEFS = {
+  common: [
+    {key:"VCC", label:"电源 VCC", unit:"V", min:3, max:18, step:0.1, fmt:fmtV, hint:"直流电源"},
+    {key:"beta", label:"器件 β", unit:"", min:30, max:300, step:1, fmt:(v)=> `${v.toFixed(0)}`, hint:"电流放大系数"},
+    {key:"VCEsat", label:"VCE(sat)", unit:"V", min:0.05, max:0.30, step:0.005, fmt:fmtV, hint:"饱和压降（教学值）"},
+    {key:"VA", label:"Early 电压 VA（可选）", unit:"V", min:20, max:250, step:1, fmt:fmtV, hint:"越大越理想"},
+    {key:"Ui", label:"输入幅度 Ui（峰值）", unit:"V", min:0, max:0.2, step:0.001, fmt:fmtV, hint:"会被 Ui_max 动态牵制"},
+    {key:"f", label:"频率 f", unit:"Hz", min:10, max:20000, step:10, fmt:fmtHz, hint:"波形滚动"},
+    {key:"cycles", label:"显示周期数", unit:"", min:1, max:5, step:1, fmt:(v)=> `${Math.round(v)}`, hint:"类似 Time/Div"},
+    {key:"uoMode", label:"uo(t) 显示", unit:"", type:"select", options:[
+      {v:"NODE", t:"节点电压（含直流）"},
+      {v:"AC", t:"示波器 AC 耦合（去直流）"},
+    ], hint:"仅影响显示，不改电路"},
+    {key:"autoScale", label:"Auto Scale", unit:"", type:"select", options:[
+      {v:"ON", t:"ON"},
+      {v:"OFF", t:"OFF"},
+    ], hint:"图表自动量程"},
+  ],
+  limits: [
+    {key:"IC_max", label:"器件限制：IC_max", unit:"A", min:0.005, max:0.25, step:0.001, fmt:fmtA, hint:"过流牵制"},
+    {key:"P_max", label:"器件限制：P_max", unit:"W", min:0.05, max:1.5, step:0.01, fmt:fmtW, hint:"功耗牵制"},
+  ],
+  ce: [
+    {key:"RC", label:"RC", unit:"Ω", min:100, max:20000, step:10, fmt:fmtOhm, hint:"集电极电阻"},
+    {key:"RE", label:"RE", unit:"Ω", min:0, max:5000, step:5, fmt:fmtOhm, hint:"发射极电阻（未旁路）"},
+    {key:"RL", label:"RL（交流负载）", unit:"Ω", min:200, max:50000, step:10, fmt:fmtOhm, hint:"经耦合电容接入"},
+    {key:"VBQ", label:"偏置：VBQ", unit:"V", min:0.2, max:3.2, step:0.005, fmt:fmtV, hint:"直接偏置旋钮（稳）"},
+  ],
+  cc: [
+    {key:"RE", label:"RE", unit:"Ω", min:200, max:10000, step:10, fmt:fmtOhm, hint:"射极电阻"},
+    {key:"RL", label:"RL（交流负载）", unit:"Ω", min:200, max:50000, step:10, fmt:fmtOhm, hint:"经耦合电容接入"},
+    {key:"VBQ", label:"偏置：VBQ", unit:"V", min:0.2, max:3.2, step:0.005, fmt:fmtV, hint:"让 VEQ 合理"},
+  ],
+  cb: [
+    {key:"RC", label:"RC", unit:"Ω", min:100, max:20000, step:10, fmt:fmtOhm, hint:"集电极电阻"},
+    {key:"RE", label:"RE（偏置用）", unit:"Ω", min:200, max:10000, step:10, fmt:fmtOhm, hint:"发射极偏置电阻"},
+    {key:"RL", label:"RL（交流负载）", unit:"Ω", min:200, max:50000, step:10, fmt:fmtOhm, hint:"经耦合电容接入"},
+    {key:"VBQ", label:"基极偏置 VBQ（CB：基极为 AC 地）", unit:"V", min:0.2, max:3.2, step:0.005, fmt:fmtV, hint:"决定 VEQ / IEQ"},
+    {key:"cbUnifiedView", label:"CB 输入特性统一视角", unit:"", type:"select", options:[
+      {v:"OFF", t:"OFF（默认：IE–VEB）"},
+      {v:"ON", t:"ON（换算为 IB–VBE）"},
+    ], hint:"方便与 CE/CC 对比"},
+  ],
+};
+
+/* ----------------------------- 默认参数 + 每电路独立记忆 ----------------------------- */
+function defaultParamsCE(){
+  return {
+    VCC:12, RC:2200, RE:680, RL:10000,
+    beta:100, VCEsat:0.12, VA:100,
+    Ui:0.02, f:1000, cycles:2, samples:420,
+    VBQ:2.25,
+    IC_max:0.03, P_max:0.25,
+    uoMode:"NODE", autoScale:"ON",
+    cbUnifiedView:false
+  };
+}
+function defaultParamsCC(){
+  return {
+    VCC:12, RE:1000, RL:10000,
+    beta:120, VCEsat:0.12, VA:120,
+    Ui:0.03, f:1000, cycles:2, samples:420,
+    VBQ:2.05,
+    IC_max:0.03, P_max:0.25,
+    uoMode:"NODE", autoScale:"ON",
+    cbUnifiedView:false
+  };
+}
+function defaultParamsCB(){
+  return {
+    VCC:12, RC:2200, RE:680, RL:10000,
+    beta:120, VCEsat:0.12, VA:120,
+    Ui:0.015, f:1000, cycles:2, samples:420,
+    VBQ:1.60,
+    IC_max:0.03, P_max:0.25,
+    uoMode:"NODE", autoScale:"ON",
+    cbUnifiedView:false
+  };
+}
+
+const PRESETS = [
+  {
+    id:"CE_CENTER", name:"CE：Q 点居中（最大不失真）", circuit:"CE",
+    apply:(p)=> Object.assign(p, defaultParamsCE(), {VBQ:2.25, Ui:0.03})
+  },
+  {
+    id:"CE_CUTOFF", name:"CE：偏置偏向截止（先截止削顶）", circuit:"CE",
+    apply:(p)=> Object.assign(p, defaultParamsCE(), {VBQ:1.95, Ui:0.05})
+  },
+  {
+    id:"CE_SAT", name:"CE：偏置偏向饱和（先饱和削顶）", circuit:"CE",
+    apply:(p)=> Object.assign(p, defaultParamsCE(), {VBQ:2.70, Ui:0.05})
+  },
+  {
+    id:"CC_FOLLOW", name:"CC：典型射随（增益≈1）", circuit:"CC",
+    apply:(p)=> Object.assign(p, defaultParamsCC(), {VBQ:2.05, Ui:0.06})
+  },
+  {
+    id:"CB_TYP", name:"CB：典型共基（负载线合理）", circuit:"CB",
+    apply:(p)=> Object.assign(p, defaultParamsCB(), {VBQ:1.60, Ui:0.02})
+  }
+];
+
+/* ----------------------------- 应用状态 ----------------------------- */
+const App = {
+  state: {
+    fsm: {powerSwitch:false, holdSwitch:false, mode:"OFF"},
+    circuit:"CE",
+    modelMode:"FAST",
+    constraintMode:"STRICT",
+    pending:false,
+  },
+  paramsByCircuit: {
+    CE: defaultParamsCE(),
+    CC: defaultParamsCC(),
+    CB: defaultParamsCB()
+  },
+  computed: null,
+  frozen: null, // snapshot for HOLD
+  lastGood: null,
+  selfTest: {done:false, failCount:0, items:[]},
+  // for run-time phase scrolling without recomputing
+  run: {
+    lastFrameMs: 0,
+    phaseIdx: 0,
+    shift: 0,
+    throttleMs: 45,
+  },
+  guard: {
+    programmatic:false
+  }
+};
+
+function currentParams(){
+  const p = App.paramsByCircuit[App.state.circuit];
+  // unify CB toggle stored as boolean
+  if (App.state.circuit==="CB"){
+    p.cbUnifiedView = !!p.cbUnifiedView;
+  }
+  return p;
+}
+
+/* ----------------------------- UI 渲染：参数面板 ----------------------------- */
+function buildParamPanel(){
+  const panel = document.getElementById("paramPanel");
+  panel.innerHTML = "";
+  const circuit = App.state.circuit;
+
+  const defs = [];
+  defs.push(...PARAM_DEFS.common);
+  if (circuit==="CE") defs.push(...PARAM_DEFS.ce);
+  if (circuit==="CC") defs.push(...PARAM_DEFS.cc);
+  if (circuit==="CB") defs.push(...PARAM_DEFS.cb);
+  defs.push(...PARAM_DEFS.limits);
+
+  const p = currentParams();
+
+  for (const def of defs){
+    const wrap = document.createElement("div");
+    wrap.className = "param";
+    const head = document.createElement("div");
+    head.className = "head";
+    const name = document.createElement("div");
+    name.className = "name";
+    name.innerHTML = def.label;
+    const hint = document.createElement("div");
+    hint.className = "hint";
+    hint.textContent = def.hint || "";
+    head.appendChild(name);
+    head.appendChild(hint);
+
+    const ctrl = document.createElement("div");
+    ctrl.className = "ctrl";
+
+    if (def.type==="select"){
+      const sel = document.createElement("select");
+      sel.id = `param_${def.key}`;
+      for (const opt of def.options){
+        const o = document.createElement("option");
+        o.value = opt.v;
+        o.textContent = opt.t;
+        sel.appendChild(o);
+      }
+      const val = p[def.key];
+      sel.value = (typeof val==="boolean") ? (val ? "ON" : "OFF") : String(val ?? def.options[0].v);
+      sel.addEventListener("change", ()=>{
+        if (App.guard.programmatic) return;
+        let v = sel.value;
+        if (def.key==="cbUnifiedView") v = (v==="ON");
+        p[def.key] = v;
+        onAnyParamChange(def.key);
+      });
+      ctrl.appendChild(sel);
+    } else {
+      const range = document.createElement("input");
+      range.type="range";
+      range.id = `paramR_${def.key}`;
+      range.min = def.min;
+      range.max = def.max;
+      range.step = def.step;
+      range.value = p[def.key];
+
+      const num = document.createElement("input");
+      num.type="number";
+      num.className="num";
+      num.id = `paramN_${def.key}`;
+      num.min = def.min;
+      num.max = def.max;
+      num.step = def.step;
+      num.value = p[def.key];
+
+      const updateUi = (v)=>{
+        const vv = Number(v);
+        if (!isFiniteNum(vv)) return;
+        p[def.key] = vv;
+        if (!App.guard.programmatic){
+          App.guard.programmatic = true;
+          range.value = vv;
+          num.value = vv;
+          App.guard.programmatic = false;
+        }
+      };
+
+      range.addEventListener("input", ()=>{
+        if (App.guard.programmatic) return;
+        updateUi(range.value);
+        onAnyParamChange(def.key);
+      });
+      num.addEventListener("change", ()=>{
+        if (App.guard.programmatic) return;
+        const vv = clamp(Number(num.value), Number(def.min), Number(def.max));
+        updateUi(vv);
+        onAnyParamChange(def.key);
+      });
+
+      ctrl.appendChild(range);
+      ctrl.appendChild(num);
+    }
+
+    wrap.appendChild(head);
+    wrap.appendChild(ctrl);
+    panel.appendChild(wrap);
+  }
+
+  // after build, apply dynamic Ui max if computed exists
+  applyDynamicUiMaxToControls();
+}
+
+/* ----------------------------- SVG 电路图 ----------------------------- */
+function svgForCircuit(circuit, p, dc, fsmMode, extra){
+  // simple textbook-ish SVG; not a strict symbol library, but clear enough.
+  const W=860, H=240;
+
+  const statusText = (fsmMode==="OFF") ? "POWER OFF / NO SIGNAL"
+    : (fsmMode==="HOLD") ? "HOLD"
+    : "RUN";
+
+  const wmClass = (fsmMode==="OFF") ? "wm-nosig" : (fsmMode==="HOLD") ? "wm-hold" : "wm-run";
+
+  const u = (x)=> String(x.toFixed(1));
+
+  // dynamic labels
+  const VCC = fmtV(p.VCC);
+  const beta = `${Math.round(p.beta)}`;
+  const Ui = fmtV(p.Ui);
+  const f = fmtHz(p.f);
+
+  const VBQ = fmtV(p.VBQ);
+  const VCEQ = fmtV(dc?.VCEQ);
+  const ICQ = fmtA(dc?.ICQ);
+  const IEQ = fmtA(dc?.IEQ);
+
+  const RC = isFinite(p.RC) ? fmtOhm(p.RC) : "—";
+  const RE = isFinite(p.RE) ? fmtOhm(p.RE) : "—";
+  const RL = isFinite(p.RL) ? fmtOhm(p.RL) : "—";
+
+  let title = "";
+  if (circuit==="CE") title = "共射 CE 放大电路（输出：集电极）";
+  if (circuit==="CC") title = "共集 CC / 射极跟随器（输出：射极）";
+  if (circuit==="CB") title = "共基 CB 放大电路（输入：射极，基极为 AC 地）";
+
+  // Helper for resistor symbol
+  const resistor = (x,y,w,label)=>{
+    return `
+      <g>
+        <polyline points="${x},${y} ${x+10},${y-8} ${x+20},${y+8} ${x+30},${y-8} ${x+40},${y+8} ${x+50},${y-8} ${x+60},${y+8} ${x+70},${y-8} ${x+80},${y}" fill="none" stroke="#cfe6ff" stroke-width="2"/>
+        <text x="${x+w/2}" y="${y-14}" fill="#e9eeff" font-size="12" text-anchor="middle">${label}</text>
+      </g>
+    `;
+  };
+  const ground = (x,y)=>`
+    <g>
+      <line x1="${x}" y1="${y}" x2="${x}" y2="${y+10}" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${x-12}" y1="${y+10}" x2="${x+12}" y2="${y+10}" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${x-9}" y1="${y+16}" x2="${x+9}" y2="${y+16}" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${x-6}" y1="${y+21}" x2="${x+6}" y2="${y+21}" stroke="#cfe6ff" stroke-width="2"/>
+    </g>
+  `;
+
+  // transistor "symbol"
+  const transistor = (x,y,label)=>{
+    return `
+      <g>
+        <circle cx="${x}" cy="${y}" r="24" fill="rgba(90,215,255,.08)" stroke="rgba(90,215,255,.55)" stroke-width="2"/>
+        <text x="${x}" y="${y+4}" fill="#e9eeff" font-size="13" text-anchor="middle" font-weight="800">${label}</text>
+      </g>
+    `;
+  };
+
+  // watermark
+  const watermark = `
+    <g opacity="0.95">
+      <rect x="${W-210}" y="12" rx="12" ry="12" width="192" height="28"
+        fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
+      <text x="${W-114}" y="31" fill="#e9eeff" font-size="12" text-anchor="middle" font-weight="900">${statusText}</text>
+    </g>
+  `;
+
+  // Corner label box with key values
+  const qBox = `
+    <g>
+      <rect x="12" y="12" rx="14" ry="14" width="320" height="86"
+        fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
+      <text x="26" y="34" fill="#e9eeff" font-size="13" font-weight="900">${title}</text>
+      <text x="26" y="54" fill="#aab3d6" font-size="12">VCC=${VCC}  β=${beta}  Ui=${Ui}  f=${f}</text>
+      <text x="26" y="74" fill="#aab3d6" font-size="12">VBQ=${VBQ}  Q: VCEQ=${VCEQ}  ICQ=${ICQ}${(circuit==="CB")?`  IEQ=${IEQ}`:""}</text>
+    </g>
+  `;
+
+  // Build circuit depending on type
+  let body = "";
+  if (circuit==="CE"){
+    // nodes
+    const xC=520, yC=76;
+    const xB=420, yB=120;
+    const xE=520, yE=156;
+
+    body = `
+      <!-- supply -->
+      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
+      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- RC to VCC -->
+      <line x1="700" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC-90,70,80, `RC=${RC}`)}
+      <line x1="${xC-10}" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- transistor -->
+      ${transistor(xC,yB,"NPN")}
+      <!-- collector lead -->
+      <line x1="${xC}" y1="${yB-24}" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xC+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
+
+      <!-- base lead + input -->
+      <line x1="${xC-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
+      <text x="${xB-92}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">ui(t)</text>
+      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
+
+      <!-- emitter lead -->
+      <line x1="${xC}" y1="${yB+24}" x2="${xC}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xC+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
+
+      <!-- RE to ground -->
+      <line x1="${xC}" y1="${yE}" x2="${xC}" y2="${yE+20}" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC-40,yE+40,80, `RE=${RE}`)}
+      <line x1="${xC}" y1="${yE+40}" x2="${xC}" y2="${yE+70}" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xC,yE+70)}
+
+      <!-- RL (AC) from output node to ground via coupling cap (symbolic) -->
+      <line x1="${xC}" y1="70" x2="${xC+86}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <rect x="${xC+86}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <rect x="${xC+100}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <line x1="${xC+110}" y1="70" x2="${xC+160}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC+160,70,80, `RL=${RL}`)}
+      <line x1="${xC+240}" y1="70" x2="${xC+240}" y2="110" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xC+240,110)}
+      <text x="${xC+84}" y="48" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
+
+      <!-- output label -->
+      <text x="${xC+10}" y="92" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>C</sub></text>
+    `;
+  }
+
+  if (circuit==="CC"){
+    const xB=420, yB=110;
+    const xE=520, yE=152;
+    body = `
+      <!-- supply -->
+      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
+      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- transistor -->
+      ${transistor(xE,yB,"NPN")}
+      <!-- collector tied to VCC -->
+      <line x1="${xE}" y1="${yB-24}" x2="${xE}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${xE}" y1="70" x2="700" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xE+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
+
+      <!-- base -->
+      <line x1="${xE-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
+      <text x="${xB-92}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">ui(t)</text>
+      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
+
+      <!-- emitter output -->
+      <line x1="${xE}" y1="${yB+24}" x2="${xE}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xE+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
+      <text x="${xE+10}" y="${yE+16}" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>E</sub></text>
+
+      <!-- RE to ground -->
+      <line x1="${xE}" y1="${yE}" x2="${xE}" y2="${yE+18}" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xE-40,yE+38,80, `RE=${RE}`)}
+      <line x1="${xE}" y1="${yE+38}" x2="${xE}" y2="${yE+68}" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xE,yE+68)}
+
+      <!-- RL via coupling capacitor -->
+      <line x1="${xE}" y1="${yE}" x2="${xE+86}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+      <rect x="${xE+86}" y="${yE-14}" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <rect x="${xE+100}" y="${yE-14}" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <line x1="${xE+110}" y1="${yE}" x2="${xE+160}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xE+160,yE,80, `RL=${RL}`)}
+      <line x1="${xE+240}" y1="${yE}" x2="${xE+240}" y2="${yE+40}" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xE+240,yE+40)}
+      <text x="${xE+84}" y="${yE-22}" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
+    `;
+  }
+
+  if (circuit==="CB"){
+    const xC=520, yC=76;
+    const xB=430, yB=118;
+    const xE=520, yE=160;
+    body = `
+      <!-- supply -->
+      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
+      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- RC -->
+      <line x1="700" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC-90,70,80, `RC=${RC}`)}
+      <line x1="${xC-10}" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- transistor -->
+      ${transistor(xC,yB,"NPN")}
+      <line x1="${xC}" y1="${yB-24}" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xC+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
+
+      <!-- base is common (AC ground) -->
+      <line x1="${xC-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
+      <text x="${xB-142}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">基极：AC 地</text>
+      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
+
+      <!-- emitter input -->
+      <line x1="${xC}" y1="${yB+24}" x2="${xC}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+      <text x="${xC+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
+      <text x="${xC-140}" y="${yE+8}" fill="#e9eeff" font-size="12" font-weight="800">ui(t) → 射极</text>
+      <line x1="${xC-40}" y1="${yE}" x2="${xC-140}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+
+      <!-- RE for bias -->
+      <line x1="${xC}" y1="${yE}" x2="${xC}" y2="${yE+18}" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC-40,yE+38,80, `RE=${RE}`)}
+      <line x1="${xC}" y1="${yE+38}" x2="${xC}" y2="${yE+68}" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xC,yE+68)}
+      <text x="${xC+10}" y="${yE+16}" fill="#aab3d6" font-size="11">偏置电阻</text>
+
+      <!-- RL (AC) -->
+      <line x1="${xC}" y1="70" x2="${xC+86}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      <rect x="${xC+86}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <rect x="${xC+100}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
+      <line x1="${xC+110}" y1="70" x2="${xC+160}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
+      ${resistor(xC+160,70,80, `RL=${RL}`)}
+      <line x1="${xC+240}" y1="70" x2="${xC+240}" y2="110" stroke="#cfe6ff" stroke-width="2"/>
+      ${ground(xC+240,110)}
+      <text x="${xC+84}" y="48" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
+
+      <text x="${xC+10}" y="92" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>C</sub></text>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" role="img" aria-label="circuit">
+      <defs>
+        <linearGradient id="g1" x1="0" x2="1">
+          <stop offset="0" stop-color="rgba(90,215,255,.18)"/>
+          <stop offset="1" stop-color="rgba(46,229,157,.10)"/>
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="${W}" height="${H}" rx="18" ry="18" fill="rgba(0,0,0,.10)" stroke="rgba(255,255,255,.10)"/>
+      ${qBox}
+      ${watermark}
+      ${body}
+      <!-- footer -->
+      <text x="${W-18}" y="${H-12}" fill="rgba(170,179,214,.75)" font-size="11" text-anchor="end">
+        状态：${statusText}  |  Q: VCEQ=${VCEQ}, ICQ=${ICQ}
+      </text>
+    </svg>
+  `;
+}
+
+/* ----------------------------- Plotly：基础布局样式 ----------------------------- */
+function plotLayoutBase(title, xTitle, yTitle){
+  return {
+    title: {text: title, font:{size:13, color:"#e9eeff"}},
+    paper_bgcolor: "rgba(0,0,0,0)",
+    plot_bgcolor: "rgba(0,0,0,0)",
+    margin: {l:52,r:18,t:40,b:42},
+    xaxis: {
+      title: {text:xTitle, font:{size:11, color:"#aab3d6"}},
+      gridcolor: "rgba(34,48,92,.8)",
+      zerolinecolor: "rgba(34,48,92,.9)",
+      tickfont:{color:"#aab3d6"},
+    },
+    yaxis: {
+      title: {text:yTitle, font:{size:11, color:"#aab3d6"}},
+      gridcolor: "rgba(34,48,92,.8)",
+      zerolinecolor: "rgba(34,48,92,.9)",
+      tickfont:{color:"#aab3d6"},
+    },
+    showlegend: true,
+    legend: {font:{size:10, color:"#e9eeff"}, bgcolor:"rgba(0,0,0,.15)", bordercolor:"rgba(255,255,255,.10)", borderwidth:1},
+  };
+}
+
+function annotateCenter(text){
+  return [{
+    text, x:0.5, y:0.5, xref:"paper", yref:"paper",
+    showarrow:false,
+    font:{size:18, color:"rgba(233,238,255,.7)", family:"ui-sans-serif"},
+  }];
+}
+
+/* ----------------------------- 计算 + 渲染（统一入口） ----------------------------- */
+let recomputeScheduled = false;
+
+function onAnyParamChange(key){
+  const fsm = App.state.fsm;
+  if (fsm.mode==="HOLD"){
+    App.state.pending = true;
+    document.getElementById("pendingHint").style.display = "block";
+    updateLiveDiag();
+    // do not update graphs/svg
+    return;
+  }
+  if (fsm.mode==="OFF"){
+    // allow edits silently; compute will happen on power ON
+    updateLiveDiag();
+    return;
+  }
+  scheduleRecompute();
+}
+
+function scheduleRecompute(){
+  if (recomputeScheduled) return;
+  recomputeScheduled = true;
+  requestAnimationFrame(()=>{
+    recomputeScheduled = false;
+    computeAndRenderSafe();
+  });
+}
+
+function computeAndRenderSafe(){
+  const fsm = App.state.fsm;
+  const circuit = App.state.circuit;
+  const p = currentParams();
+
+  if (fsm.mode==="OFF"){
+    renderPowerOff();
+    return;
+  }
+
+  const t0 = nowMs();
+  let banner = "";
+  let warn = "";
+  let computed = null;
+
+  try{
+    // 1) DC
+    const dc = solveDC(p, circuit);
+    if (!dc.ok){
+      throw new Error("DC 无解或异常：" + dc.diagnostics.join("; "));
+    }
+
+    // 2) dynamic bounds (Ui_max)
+    const bounds = calcDynamicBounds(p, circuit, dc);
+
+    // strict/explore: update Ui slider max and clamp if needed
+    applyUiConstraint(bounds);
+
+    // 3) characteristics
+    const chars = genCharacteristics(p, circuit, dc);
+
+    // 4) waveforms (respect chosen model mode)
+    let wf = null;
+    const chosenMode = App.state.modelMode;
+    if (chosenMode==="ENH"){
+      // try enhanced; if overflow / too many non-converged points -> downgrade to FAST
+      wf = genWaveforms(p, circuit, dc, "ENH");
+      if (!isFiniteNum(wf.clipInfo.meanVCE) || wf.clipInfo.solverOkRatio < 0.92){
+        warn = `增强模式出现收敛/稳定性问题（solverOkRatio=${(wf.clipInfo.solverOkRatio*100).toFixed(1)}%），已自动降级回教学快速模式。建议：减小 Ui、增大 RL 或调整偏置。`;
+        App.state.modelMode = "FAST";
+        document.getElementById("modelSelect").value = "FAST";
+        wf = genWaveforms(p, circuit, dc, "FAST");
+      }
+    } else {
+      wf = genWaveforms(p, circuit, dc, "FAST");
+    }
+
+    // 5) consistency check (mean VCE ~ VCEQ)
+    const relErr = Math.abs(wf.clipInfo.meanVCE - dc.VCEQ) / Math.max(1e-6, Math.abs(dc.VCEQ));
+    const consistencyOk = relErr <= 0.02;
+
+    computed = {dc, bounds, chars, wf, perfMs: nowMs()-t0, consistencyOk, consistencyRelErr: relErr};
+
+    // last-known-good snapshot for Revert + failure fallback
+    App.lastGood = {
+      circuit,
+      params: deepCopy(App.paramsByCircuit),
+      computed: deepCopy(computed),
+      stamp: new Date().toISOString()
+    };
+
+  } catch(e){
+    banner = `计算失败：${String(e)}。系统将回退到 last-known-good（若存在），并建议：减小 Ui、增大 RL、调整 VBQ 或降低 β/增大 RE。`;
+    if (App.lastGood){
+      // revert to last good but keep user edits for possible later
+      // for safety, we only restore computed for display; keep params as-is in explore (but may still fail)
+      computed = deepCopy(App.lastGood.computed);
+    } else {
+      renderPowerOff("NO SIGNAL（计算失败且无可回退快照）");
+      setBanner("bad", banner);
+      return;
+    }
+  }
+
+  App.computed = computed;
+  // If in HOLD mode, store freeze snapshot
+  if (fsm.mode==="HOLD"){
+    App.frozen = deepCopy(computed);
+  }
+
+  // update banners
+  if (banner) setBanner("bad", banner);
+  else if (warn) setBanner("warn", warn);
+  else clearBanner();
+
+  // update UI
+  renderAllFromComputed(computed);
+}
+
+function setBanner(kind, text){
+  const b = document.getElementById("globalBanner");
+  b.className = "banner " + kind;
+  b.textContent = text;
+  b.style.display = "block";
+}
+function clearBanner(){
+  const b = document.getElementById("globalBanner");
+  b.style.display = "none";
+}
+
+/* ----------------------------- Ui_max 应用到滑块（防抖+防递归） ----------------------------- */
+function applyUiConstraint(bounds){
+  const p = currentParams();
+  const uiKey = "Ui";
+  const range = document.getElementById("paramR_Ui");
+  const num = document.getElementById("paramN_Ui");
+  if (!range || !num) return;
+
+  const UiMax = Math.max(0, bounds.UiMax);
+  const mode = App.state.constraintMode;
+
+  // explore allows exceed UiMax (for teaching overload), but slider max still tracks UiMax (scaled)
+  const exploreMax = Math.min(5, UiMax*1.8 + 1e-6);
+  const newMax = (mode==="STRICT") ? UiMax : exploreMax;
+
+  App.guard.programmatic = true;
+  range.max = newMax;
+  num.max = newMax;
+  if (mode==="STRICT"){
+    if (p.Ui > UiMax){
+      p.Ui = UiMax;
+      range.value = p.Ui;
+      num.value = p.Ui;
+    }
+  }
+  App.guard.programmatic = false;
+}
+
+function applyDynamicUiMaxToControls(){
+  const c = App.computed || App.frozen;
+  if (!c || !c.bounds) return;
+  applyUiConstraint(c.bounds);
+}
+
+/* ----------------------------- 渲染：KPI 面板 ----------------------------- */
+function renderKPIs(computed){
+  const kpiPanel = document.getElementById("kpiPanel");
+  const p = currentParams();
+  const dc = computed.dc;
+  const wf = computed.wf;
+  const b = computed.bounds;
+
+  // limiting reason label
+  const reasonText = {
+    none:"—",
+    cutoff:"cutoff（截止）",
+    saturation:"saturation（饱和）",
+    overcurrent:"overcurrent（过流）",
+    overpower:"overpower（功耗）",
+  }[b.limitingReason] || b.limitingReason;
+
+  // uo metrics
+  const m = (p.uoMode==="AC") ? wf.metrics.ac : wf.metrics.node;
+  const uoPP = m.pp;
+  const uoRms = m.rms;
+
+  // clip message
+  const clip = wf.clipInfo;
+  let clipMsg = "无削顶";
+  if (clip.clipType==="single") clipMsg = `单边削顶（${clip.firstClip==="cutoff-first"?"先截止":"先饱和"}）`;
+  if (clip.clipType==="both") clipMsg = `双边削顶（截止+饱和）`;
+
+  const region = dc.region;
+  const regionZh = {active:"有源", cutoff:"截止", saturation:"饱和", invalid:"异常"}[region] || region;
+
+  const items = [
+    {t:"状态", v: App.state.fsm.mode==="OFF" ? "POWER OFF" : (App.state.fsm.mode==="HOLD" ? "HOLD" : "RUN"), s: App.state.pending ? "（有未应用参数）" : ""},
+    {t:"Q 点：VCEQ", v: fmtV(dc.VCEQ), s:`VC=${fmtV(dc.VC)}  VE=${fmtV(dc.VE)}`},
+    {t:"Q 点：ICQ", v: fmtA(dc.ICQ), s:`IBQ=${fmtA(dc.IBQ)}  IEQ=${fmtA(dc.IEQ)}`},
+    {t:"工作区", v: regionZh, s:`VBEQ=${fmtV(dc.VBEQ)}`},
+    {t:"Ui_max（牵制）", v: fmtV(b.UiMax), s:`主导原因：${reasonText}`},
+    {t:"输出幅度（当前）", v: `${formatSI(uoPP,"V",3)}pp`, s:`Vrms=${formatSI(uoRms,"V",3)}（${p.uoMode==="AC"?"AC耦合":"含直流"}）`},
+    {t:"失真/削顶", v: clipMsg, s:`一致性：mean(VCE)≈VCEQ ${computed.consistencyOk?"✓":"✗"}（err ${(computed.consistencyRelErr*100).toFixed(1)}%）`},
+  ];
+
+  kpiPanel.innerHTML = items.map(it=>`
+    <div class="kpi">
+      <div class="t">${it.t}</div>
+      <div class="v">${it.v}</div>
+      <div class="s">${it.s||""}</div>
+    </div>
+  `).join("");
+}
+
+/* ----------------------------- 渲染：图表（Plotly） ----------------------------- */
+function renderAllFromComputed(computed){
+  const fsm = App.state.fsm;
+  const circuit = App.state.circuit;
+  const p = currentParams();
+  const dc = computed.dc;
+  const chars = computed.chars;
+  const wf = computed.wf;
+
+  // SVG
+  const svgWrap = document.getElementById("svgWrap");
+  svgWrap.innerHTML = svgForCircuit(circuit, p, dc, fsm.mode);
+
+  // watermark tag
+  const wmTag = document.getElementById("wmTag");
+  wmTag.textContent = (fsm.mode==="OFF") ? "NO SIGNAL" : (fsm.mode==="HOLD" ? "HOLD" : "RUN");
+  wmTag.className = "watermark " + ((fsm.mode==="OFF") ? "wm-nosig" : (fsm.mode==="HOLD" ? "wm-hold" : "wm-run"));
+
+  // KPIs
+  renderKPIs(computed);
+
+  // ui(t)
+  const tms = wf.t.map(tt=> tt*1000);
+  const uiTrace = {
+    x: tms, y: wf.ui,
+    type:"scatter", mode:"lines",
+    name:"ui(t)", line:{width:2, color:"#5ad7ff"},
+    hovertemplate:"t=%{x:.2f} ms<br>ui=%{y:.4f} V<extra></extra>",
+  };
+  const lUi = plotLayoutBase("输入波形 ui(t)", "t (ms)", "ui (V)");
+  lUi.uirevision = "ui";
+  if (p.autoScale!=="ON"){
+    lUi.yaxis.range = [-Math.max(0.02, p.Ui*1.35), Math.max(0.02, p.Ui*1.35)];
+  }
+  Plotly.react("plotUi", [uiTrace], lUi, {displayModeBar:false, responsive:true});
+
+  // uo(t)
+  const uoArr = (p.uoMode==="AC") ? wf.uoAC : wf.uoNode;
+  const uoTrace = {
+    x: tms, y: uoArr,
+    type:"scatter", mode:"lines",
+    name: (p.uoMode==="AC") ? "uo(t) AC" : "uo(t) NODE",
+    line:{width:2, color:"#2ee59d"},
+    hovertemplate:"t=%{x:.2f} ms<br>uo=%{y:.4f} V<extra></extra>",
+  };
+  const lUo = plotLayoutBase("输出波形 uo(t)", "t (ms)", "uo (V)");
+  lUo.uirevision = "uo";
+  if (p.autoScale!=="ON"){
+    if (p.uoMode==="AC"){
+      const amp = Math.max(0.05, Math.max(...uoArr.map(v=>Math.abs(v))) * 1.25);
+      lUo.yaxis.range = [-amp, amp];
+    } else {
+      lUo.yaxis.range = [Math.min(0, dc.VE-0.5), Math.max(p.VCC, dc.VC+0.5)];
+    }
+  }
+  // annotate clipping
+  if (wf.clipInfo.clipType!=="none"){
+    lUo.annotations = [{
+      text: wf.clipInfo.clipType==="both" ? "CLIPPING: cutoff + saturation" : `CLIPPING: ${wf.clipInfo.anyCut?"cutoff":"saturation"}`,
+      x:0.02, y:0.95, xref:"paper", yref:"paper", showarrow:false,
+      font:{size:12, color:"rgba(255,204,102,.95)"},
+      bgcolor:"rgba(0,0,0,.25)",
+      bordercolor:"rgba(255,204,102,.35)",
+      borderwidth:1,
+      align:"left"
+    }];
+  }
+  Plotly.react("plotUo", [uoTrace], lUo, {displayModeBar:false, responsive:true});
+
+  // 输入特性 + Q 点
+  const inCurve = {
+    x: chars.inputCurve.x, y: chars.inputCurve.y,
+    type:"scatter", mode:"lines",
+    name:"输入特性",
+    line:{width:2, color:"#5ad7ff"},
+    hovertemplate:`${chars.inputCurve.xLabel}=%{x:.3f}<br>${chars.inputCurve.yLabel}=%{y:.4e}<extra></extra>`,
+  };
+  const inQ = {
+    x:[chars.inputCurve.q.x], y:[chars.inputCurve.q.y],
+    type:"scatter", mode:"markers+text",
+    name:"Q 点",
+    marker:{size:10, color:"#ffcc66", line:{width:1, color:"#111"}},
+    text:["Q"], textposition:"top center",
+    hovertemplate:"Q 点<br>x=%{x:.3f}<br>y=%{y:.4e}<extra></extra>"
+  };
+  const lIn = plotLayoutBase(chars.inputCurve.title, chars.inputCurve.xLabel, chars.inputCurve.yLabel);
+  lIn.uirevision = "in";
+  Plotly.react("plotIn", [inCurve, inQ], lIn, {displayModeBar:false, responsive:true});
+
+  // 传输特性 uo-ui：用一周期散点 + 线性段拟合
+  const xUi = wf.ui;
+  const yUo = (p.uoMode==="AC") ? wf.uoAC : wf.uoNode;
+
+  // linear segment around ui ~ 0 (closest 25% points)
+  const idxSorted = [...Array(xUi.length).keys()].sort((a,b)=> Math.abs(xUi[a]) - Math.abs(xUi[b]));
+  const take = Math.max(30, Math.floor(xUi.length*0.25));
+  const idxTake = idxSorted.slice(0, take);
+  let sx=0, sy=0, sxx=0, sxy=0;
+  for (const i of idxTake){
+    const x = xUi[i], y = yUo[i];
+    sx += x; sy += y; sxx += x*x; sxy += x*y;
+  }
+  const nfit = idxTake.length;
+  const denom = (nfit*sxx - sx*sx);
+  const k = denom!==0 ? (nfit*sxy - sx*sy)/denom : 0;
+  const b0 = (sy - k*sx)/Math.max(1, nfit);
+
+  const xFit = [Math.min(...xUi), Math.max(...xUi)];
+  const yFit = xFit.map(x=> k*x + b0);
+
+  const tr1 = {
+    x: xUi, y: yUo,
+    type:"scatter", mode:"lines",
+    name:"动态转移曲线",
+    line:{width:2, color:"#2ee59d"},
+    hovertemplate:"ui=%{x:.4f} V<br>uo=%{y:.4f} V<extra></extra>",
+  };
+  const trFit = {
+    x: xFit, y: yFit,
+    type:"scatter", mode:"lines",
+    name:"近似线性段（拟合）",
+    line:{width:2, dash:"dot", color:"#ffcc66"},
+    hovertemplate:"线性拟合<extra></extra>",
+  };
+  const lTr = plotLayoutBase("传输特性 uo – ui（动态）", "ui (V)", (p.uoMode==="AC")?"uo_AC (V)":"uo_node (V)");
+  lTr.uirevision = "tr";
+  Plotly.react("plotTransfer", [tr1, trFit], lTr, {displayModeBar:false, responsive:true});
+
+  // 输出特性族 + 负载线 + Q 点 + 轨迹 + 区域分区
+  const traces = [];
+
+  // family curves
+  for (const c of chars.outputCurves.curves){
+    const ib = c.ib;
+    const name = (ib===0) ? "IB=0" : `IB=${formatSI(ib,"A",3)}`;
+    traces.push({
+      x: c.vce, y: c.ic,
+      type:"scatter", mode:"lines",
+      name, line:{width:1.5, color:"rgba(233,238,255,.55)"},
+      hovertemplate:"VCE=%{x:.2f} V<br>IC=%{y:.4e} A<extra></extra>"
+    });
+  }
+
+  // load lines
+  traces.push({
+    x: chars.loadLines.dc.VCE, y: chars.loadLines.dc.IC,
+    type:"scatter", mode:"lines",
+    name:"直流负载线",
+    line:{width:2, color:"#5ad7ff"},
+    hovertemplate:"DC load line<extra></extra>"
+  });
+  traces.push({
+    x: chars.loadLines.ac.VCE, y: chars.loadLines.ac.IC,
+    type:"scatter", mode:"lines",
+    name:"交流负载线（过 Q）",
+    line:{width:2, dash:"dash", color:"#2ee59d"},
+    hovertemplate:"AC load line<extra></extra>"
+  });
+
+  // Q point
+  traces.push({
+    x:[dc.VCEQ], y:[dc.ICQ],
+    type:"scatter", mode:"markers+text",
+    name:"Q 点",
+    marker:{size:12, color:"#ffcc66", line:{width:1, color:"#111"}},
+    text:["Q"], textposition:"top center",
+  });
+
+  // instantaneous trajectory (VCE(t), IC(t))
+  traces.push({
+    x: wf.vce, y: wf.ic,
+    type:"scatter", mode:"lines",
+    name:"瞬时轨迹 (VCE(t),IC(t))",
+    line:{width:2, color:"rgba(255,204,102,.55)"},
+    hovertemplate:"VCE=%{x:.2f} V<br>IC=%{y:.4e} A<extra></extra>"
+  });
+
+  const lOut = plotLayoutBase("输出特性族：IC – VCE（含负载线/Q 点/轨迹/工作区）", "VCE (V)", "IC (A)");
+  lOut.uirevision = "out";
+  lOut.shapes = [];
+
+  // saturation region (x < VCEsat)
+  lOut.shapes.push({
+    type:"rect", xref:"x", yref:"paper",
+    x0:0, x1: chars.regions.saturation.x1, y0:0, y1:1,
+    fillcolor:"rgba(255,77,109,.08)", line:{width:0}, layer:"below"
+  });
+  // cutoff region (bottom strip)
+  lOut.shapes.push({
+    type:"rect", xref:"paper", yref:"y",
+    x0:0, x1:1, y0:0, y1: chars.regions.cutoffIC,
+    fillcolor:"rgba(180,190,220,.07)", line:{width:0}, layer:"below"
+  });
+  // active region hint (rest)
+  lOut.annotations = [
+    {
+      text:`裕量：到截止 ≈ ${fmtV(chars.loadLines.margins.marginToCutoff)} ，到饱和 ≈ ${fmtV(chars.loadLines.margins.marginToSat)}`,
+      x:0.02, y:0.98, xref:"paper", yref:"paper", showarrow:false,
+      font:{size:12, color:"rgba(233,238,255,.85)"},
+      bgcolor:"rgba(0,0,0,.22)", bordercolor:"rgba(255,255,255,.12)", borderwidth:1,
+      align:"left"
+    },
+    {
+      text:`工作区：cutoff / active / saturation`,
+      x:0.02, y:0.90, xref:"paper", yref:"paper", showarrow:false,
+      font:{size:11, color:"rgba(170,179,214,.9)"},
+      bgcolor:"rgba(0,0,0,.18)", bordercolor:"rgba(255,255,255,.10)", borderwidth:1,
+      align:"left"
+    }
+  ];
+  Plotly.react("plotOut", traces, lOut, {displayModeBar:false, responsive:true});
+
+  // update param panel Ui max display without recursion
+  applyDynamicUiMaxToControls();
+
+  // update live diag
+  updateLiveDiag(computed);
+}
+
+/* ----------------------------- Power OFF 显示（NO SIGNAL） ----------------------------- */
+function renderPowerOff(customText){
+  const txt = customText || "NO SIGNAL";
+  // blank SVG but still show status
+  const p = currentParams();
+  const circuit = App.state.circuit;
+  const dcDummy = {VCEQ:NaN, ICQ:NaN, IBQ:NaN, IEQ:NaN, VC:NaN, VE:NaN, VBEQ:NaN, region:"off"};
+  document.getElementById("svgWrap").innerHTML = svgForCircuit(circuit, p, dcDummy, "OFF");
+  const wmTag = document.getElementById("wmTag");
+  wmTag.textContent = "NO SIGNAL";
+  wmTag.className = "watermark wm-nosig";
+
+  // KPI panel
+  document.getElementById("kpiPanel").innerHTML = `
+    <div class="kpi"><div class="t">状态</div><div class="v">POWER OFF</div><div class="s">NO SIGNAL</div></div>
+    <div class="kpi"><div class="t">提示</div><div class="v">打开 Power</div><div class="s">HOLD 在 Power ON 时才生效</div></div>
+  `;
+
+  // plots
+  const offLayout = (title,x,y)=> {
+    const l = plotLayoutBase(title,x,y);
+    l.annotations = annotateCenter(txt);
+    l.showlegend = false;
+    return l;
+  };
+  Plotly.react("plotUi", [{x:[0,1],y:[0,0],type:"scatter",mode:"lines",line:{width:2,color:"rgba(180,190,220,.5)"}}], offLayout("输入波形 ui(t)", "t", "ui"), {displayModeBar:false, responsive:true});
+  Plotly.react("plotUo", [{x:[0,1],y:[0,0],type:"scatter",mode:"lines",line:{width:2,color:"rgba(180,190,220,.5)"}}], offLayout("输出波形 uo(t)", "t", "uo"), {displayModeBar:false, responsive:true});
+  Plotly.react("plotIn", [], offLayout("输入特性（灰置）", "V", "I"), {displayModeBar:false, responsive:true});
+  Plotly.react("plotTransfer", [], offLayout("传输特性（灰置）", "ui", "uo"), {displayModeBar:false, responsive:true});
+  Plotly.react("plotOut", [], offLayout("输出特性（灰置）", "VCE", "IC"), {displayModeBar:false, responsive:true});
+
+  updateLiveDiag();
+}
+
+/* ----------------------------- RUN：相位滚动（不重算，只循环移位） ----------------------------- */
+function startRunLoop(){
+  function tick(ts){
+    requestAnimationFrame(tick);
+    const fsm = App.state.fsm;
+    if (fsm.mode!=="RUN") return;
+    if (!App.computed) return;
+
+    // throttle
+    if (ts - App.run.lastFrameMs < App.run.throttleMs) return;
+    App.run.lastFrameMs = ts;
+
+    const p = currentParams();
+    const wf = App.computed.wf;
+    const n = wf.t.length;
+
+    // compute shift based on frequency and elapsed time (simple)
+    // shift steps so that one full cycle corresponds to N/cycles points
+    const cycles = Math.max(1, Math.round(p.cycles||2));
+    const perCycle = Math.max(1, Math.floor(n / cycles));
+    // advance shift by approx f*(dt) cycles; dt implied by throttle
+    const dt = App.run.throttleMs / 1000;
+    const dShift = Math.max(1, Math.floor(perCycle * p.f * dt));
+    App.run.shift = (App.run.shift + dShift) % n;
+
+    // produce shifted arrays (lightweight)
+    const shiftArr = (arr)=>{
+      const k = App.run.shift;
+      return arr.slice(k).concat(arr.slice(0,k));
+    };
+
+    const tms = wf.t.map(tt=> tt*1000);
+    const tmsShift = shiftArr(tms);
+    const uiShift = shiftArr(wf.ui);
+    const uoShift = shiftArr((p.uoMode==="AC") ? wf.uoAC : wf.uoNode);
+
+    // fast restyle 2 waveform plots
+    Plotly.restyle("plotUi", {x:[tmsShift], y:[uiShift]}, [0]);
+    Plotly.restyle("plotUo", {x:[tmsShift], y:[uoShift]}, [0]);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ----------------------------- 诊断：运行中提示（告警/建议） ----------------------------- */
+function updateLiveDiag(computed){
+  const el = document.getElementById("liveDiag");
+  const fsm = App.state.fsm;
+  const p = currentParams();
+
+  if (fsm.mode==="OFF"){
+    el.innerHTML = `状态：<b>POWER OFF</b>。图表处于 NO SIGNAL。<br><span class="muted">提示：打开 Power 后开始计算；若 HOLD=ON，上电后会计算一次并冻结。</span>`;
+    return;
+  }
+
+  const c = computed || App.frozen || App.computed;
+  if (!c){
+    el.textContent = "暂无计算结果。";
+    return;
+  }
+
+  const dc = c.dc, wf = c.wf, b = c.bounds;
+  const lines = [];
+  lines.push(`状态：<b>${fsm.mode}</b>（牵制：<b>${App.state.constraintMode}</b>，模型：<b>${App.state.modelMode}</b>）`);
+  lines.push(`Q：VCEQ=${fmtV(dc.VCEQ)}，ICQ=${fmtA(dc.ICQ)}，工作区=${dc.region}`);
+  lines.push(`Ui=${fmtV(p.Ui)}（Ui_max≈${fmtV(b.UiMax)}，主导=${b.limitingReason || "—"}）`);
+  lines.push(`削顶：${wf.clipInfo.clipType}（${wf.clipInfo.anyCut?"cutoff ":""}${wf.clipInfo.anySat?"saturation":""}）`);
+
+  // Explore warnings if exceeding
+  if (App.state.constraintMode==="EXPLORE" && p.Ui > b.UiMax*1.001){
+    lines.push(`<span style="color:#ffcc66;font-weight:800;">⚠ 探索模式超限：Ui > Ui_max</span>（会演示失真/过载）。建议查看主导原因并调参。`);
+  }
+  // Current / power warnings
+  const maxIC = Math.max(...wf.ic);
+  const maxP = Math.max(...wf.vce.map((v,i)=>Math.max(0,v)*Math.max(0,wf.ic[i])));
+  if (maxIC > p.IC_max*1.001){
+    lines.push(`<span style="color:#ff4d6d;font-weight:800;">⚠ 过流：max(IC)≈${fmtA(maxIC)} > IC_max=${fmtA(p.IC_max)}</span>`);
+  }
+  if (maxP > p.P_max*1.001){
+    lines.push(`<span style="color:#ff4d6d;font-weight:800;">⚠ 过功耗：max(P)≈${fmtW(maxP)} > P_max=${fmtW(p.P_max)}</span>`);
+  }
+
+  // HOLD pending
+  if (fsm.mode==="HOLD" && App.state.pending){
+    lines.push(`<span style="color:#ffcc66;font-weight:800;">已冻结：解除 HOLD 后将应用新参数</span>`);
+  }
+
+  // performance hint
+  lines.push(`<span class="muted">刷新耗时：${c.perfMs ? c.perfMs.toFixed(1) : "—"} ms（自测要求 < 50ms）</span>`);
+  el.innerHTML = lines.join("<br/>");
+}
+
+/* ----------------------------- 预设 & 自动化 ----------------------------- */
+function fillPresetSelect(){
+  const sel = document.getElementById("presetSelect");
+  sel.innerHTML = "";
+  for (const ps of PRESETS){
+    const o = document.createElement("option");
+    o.value = ps.id;
+    o.textContent = ps.name;
+    sel.appendChild(o);
+  }
+}
+function applyPresetById(id){
+  const ps = PRESETS.find(x=>x.id===id);
+  if (!ps) return;
+  // switch circuit first
+  App.state.circuit = ps.circuit;
+  document.getElementById("circuitSelect").value = ps.circuit;
+  // apply to that circuit params
+  const p = App.paramsByCircuit[ps.circuit];
+  ps.apply(p);
+  buildParamPanel();
+  // if running, recompute
+  if (App.state.fsm.mode!=="OFF" && App.state.fsm.mode!=="HOLD") computeAndRenderSafe();
+  else renderPowerOff();
+}
+
+/**
+ * 自动调偏置到居中：
+ * - 目标：让 VCEQ 接近 (VCC + VCEsat)/2（直观居中）
+ * - 使用扫描 + 二分；失败不崩溃
+ */
+function autoBiasCenter(){
+  const circuit = App.state.circuit;
+  const p = currentParams();
+  if (App.state.fsm.mode==="OFF"){
+    setBanner("warn", "Power OFF：仍可自动设定 VBQ，但图不会更新。打开 Power 后生效。");
+  }
+  const target = (p.VCC + p.VCEsat)/2;
+
+  const vbMin = 0.2, vbMax = 3.2;
+  function evalVB(vb){
+    const pp = deepCopy(p);
+    pp.VBQ = vb;
+    const dc = solveDC(pp, circuit);
+    if (!dc.ok) return {ok:false, err:1e9};
+    return {ok:true, err: dc.VCEQ - target, dc};
+  }
+
+  // bracket by scanning
+  let a=vbMin, b=vbMax;
+  let fa = evalVB(a), fb = evalVB(b);
+  if (!fa.ok || !fb.ok){
+    setBanner("warn", "自动居中：在 VBQ 边界处 DC 无解。建议增大 RE/RC 或减小 VBQ 范围。");
+    return;
+  }
+  // want err ~ 0; err usually decreases with VBQ (more VB -> more IC -> lower VCEQ)
+  // ensure opposite sign; if not, do best-fit scan
+  if (fa.err*fb.err > 0){
+    // best VB by coarse scan
+    let best = {vb:a, e:Math.abs(fa.err)};
+    for (let i=0;i<=40;i++){
+      const vb = lerp(vbMin, vbMax, i/40);
+      const r = evalVB(vb);
+      if (r.ok && Math.abs(r.err) < best.e){
+        best = {vb, e:Math.abs(r.err)};
+      }
+    }
+    p.VBQ = best.vb;
+    buildParamPanel();
+    if (App.state.fsm.mode==="RUN") computeAndRenderSafe();
+    else App.state.pending = true;
+    setBanner("warn", `自动居中：未能严格二分括住目标，已选近似最优 VBQ≈${fmtV(best.vb)}。`);
+    return;
+  }
+
+  // bisection
+  for (let i=0;i<18;i++){
+    const m = 0.5*(a+b);
+    const fm = evalVB(m);
+    if (!fm.ok) { b = m; continue; }
+    if (fa.err*fm.err <= 0){
+      b = m; fb = fm;
+    } else {
+      a = m; fa = fm;
+    }
+  }
+  const vbBest = 0.5*(a+b);
+  p.VBQ = vbBest;
+  buildParamPanel();
+  if (App.state.fsm.mode==="RUN") computeAndRenderSafe();
+  else App.state.pending = true;
+  clearBanner();
+}
+
+/**
+ * 刚好不失真（在当前 Ui 下调 VBQ）：
+ * - 目标：让 min(VCE)-VCEsat 与 VCC-max(VCE) “尽量对称且略有裕量”
+ * - 用局部扫描（稳健）而非强收敛
+ */
+function autoJustNoDist(){
+  const circuit = App.state.circuit;
+  const p = currentParams();
+  const Ui = p.Ui;
+
+  const vbMin = 0.2, vbMax = 3.2;
+
+  function scoreVB(vb){
+    const pp = deepCopy(p);
+    pp.VBQ = vb;
+    const dc = solveDC(pp, circuit);
+    if (!dc.ok) return {ok:false, score:1e9, why:"DC无解"};
+    const wf = genWaveforms(pp, circuit, dc, "FAST");
+    const minVCE = Math.min(...wf.vce);
+    const maxVCE = Math.max(...wf.vce);
+    const a = (minVCE - p.VCEsat); // sat headroom
+    const b = (p.VCC - maxVCE);    // cutoff headroom (top)
+    // prefer both positive and close; penalize clipping
+    const clipPenalty = (wf.clipInfo.anyCut || wf.clipInfo.anySat) ? 10 : 0;
+    const asym = Math.abs(a-b);
+    const negPenalty = (a<0? 50*Math.abs(a):0) + (b<0? 50*Math.abs(b):0);
+    return {ok:true, score: asym + negPenalty + clipPenalty, a,b, dc, wf};
+  }
+
+  let best = {score:1e18, vb:p.VBQ};
+  const steps = 50;
+  for (let i=0;i<=steps;i++){
+    const vb = lerp(vbMin, vbMax, i/steps);
+    const r = scoreVB(vb);
+    if (r.ok && r.score < best.score){
+      best = {score:r.score, vb, a:r.a, b:r.b};
+    }
+  }
+  p.VBQ = best.vb;
+  buildParamPanel();
+  if (App.state.fsm.mode==="RUN") computeAndRenderSafe();
+  else App.state.pending = true;
+
+  setBanner("warn", `刚好不失真：已选 VBQ≈${fmtV(best.vb)}（在当前 Ui=${fmtV(Ui)} 下让上下裕量更接近）。若仍轻微削顶，尝试略减 Ui 或增大 RL。`);
+}
+
+/* ----------------------------- Export/Import/Reset/Revert/PNG ----------------------------- */
+function resetAll(){
+  App.paramsByCircuit.CE = defaultParamsCE();
+  App.paramsByCircuit.CC = defaultParamsCC();
+  App.paramsByCircuit.CB = defaultParamsCB();
+  App.state.pending = false;
+  document.getElementById("pendingHint").style.display = "none";
+  buildParamPanel();
+  if (App.state.fsm.mode==="RUN" || App.state.fsm.mode==="HOLD") computeAndRenderSafe();
+  else renderPowerOff();
+}
+function revertLastGood(){
+  if (!App.lastGood){
+    setBanner("warn", "暂无 last-known-good 快照。请先 Power ON 运行一次。");
+    return;
+  }
+  App.paramsByCircuit = deepCopy(App.lastGood.params);
+  App.state.circuit = App.lastGood.circuit;
+  document.getElementById("circuitSelect").value = App.state.circuit;
+  App.state.pending = false;
+  document.getElementById("pendingHint").style.display = "none";
+  buildParamPanel();
+  if (App.state.fsm.mode==="OFF") renderPowerOff();
+  else {
+    App.computed = deepCopy(App.lastGood.computed);
+    renderAllFromComputed(App.computed);
+    clearBanner();
+  }
+}
+function exportJSON(){
+  const payload = {
+    version: "bjt-teaching-tool-1.0",
+    savedAt: new Date().toISOString(),
+    app: {
+      circuit: App.state.circuit,
+      modelMode: App.state.modelMode,
+      constraintMode: App.state.constraintMode,
+      fsm: App.state.fsm,
+    },
+    paramsByCircuit: App.paramsByCircuit,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bjt_teaching_tool_state.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+async function importJSONFile(file){
+  const text = await file.text();
+  let obj;
+  try{ obj = JSON.parse(text); }catch(e){
+    setBanner("bad", "Import 失败：JSON 解析错误。");
+    return;
+  }
+  if (!obj || !obj.paramsByCircuit){
+    setBanner("bad", "Import 失败：缺少 paramsByCircuit。");
+    return;
+  }
+  // minimal validation + merge
+  App.paramsByCircuit = deepCopy(obj.paramsByCircuit);
+  if (obj.app){
+    App.state.circuit = obj.app.circuit || App.state.circuit;
+    App.state.modelMode = obj.app.modelMode || App.state.modelMode;
+    App.state.constraintMode = obj.app.constraintMode || App.state.constraintMode;
+    document.getElementById("modelSelect").value = App.state.modelMode;
+    document.getElementById("constraintSelect").value = App.state.constraintMode;
+  }
+  document.getElementById("circuitSelect").value = App.state.circuit;
+  buildParamPanel();
+  setBanner("warn", "已导入参数。若处于 HOLD，将在解除 HOLD 后应用到图像。");
+  if (App.state.fsm.mode==="RUN") computeAndRenderSafe();
+  if (App.state.fsm.mode==="OFF") renderPowerOff();
+}
+
+function exportPNGWave(){
+  // Export uo waveform (and ui) in one go: easiest export uo plot, then ui plot
+  Plotly.downloadImage("plotUo", {format:"png", filename:"uo_waveform"});
+  setTimeout(()=> Plotly.downloadImage("plotUi", {format:"png", filename:"ui_waveform"}), 350);
+}
+function exportPNGChar(){
+  Plotly.downloadImage("plotOut", {format:"png", filename:"output_characteristics"});
+  setTimeout(()=> Plotly.downloadImage("plotIn", {format:"png", filename:"input_characteristics"}), 350);
+}
+
+/* ----------------------------- Power/HOLD 按钮逻辑 ----------------------------- */
+function updatePowerHoldButtons(){
+  const pBtn = document.getElementById("powerBtn");
+  const hBtn = document.getElementById("holdBtn");
+  const s = App.state.fsm;
+
+  pBtn.textContent = s.powerSwitch ? "ON" : "OFF";
+  pBtn.className = "toggle " + (s.powerSwitch ? "on" : "off");
+
+  hBtn.textContent = s.holdSwitch ? "ON" : "OFF";
+  hBtn.className = "toggle " + (s.holdSwitch ? "on" : "off");
+
+  // HOLD only meaningful when power ON; still allowed to set (it will freeze after power on)
+  hBtn.style.opacity = s.powerSwitch ? "1" : "0.85";
+}
+
+function setFSM(event){
+  const prevMode = App.state.fsm.mode;
+  App.state.fsm = fsmTransition(App.state.fsm, event);
+  updatePowerHoldButtons();
+
+  const newMode = App.state.fsm.mode;
+  // priority: OFF clears HOLD visuals
+  if (newMode==="OFF"){
+    App.state.pending = false;
+    document.getElementById("pendingHint").style.display = "none";
+    App.frozen = null;
+    renderPowerOff();
+    return;
+  }
+
+  // if transitioned into HOLD: compute once (if not already) and freeze
+  if (newMode==="HOLD"){
+    App.state.pending = false;
+    document.getElementById("pendingHint").style.display = "none";
+    computeAndRenderSafe(); // will store frozen snapshot
+    return;
+  }
+
+  // transitioned into RUN: apply pending params and run
+  if (newMode==="RUN"){
+    App.state.pending = false;
+    document.getElementById("pendingHint").style.display = "none";
+    // clear frozen
+    App.frozen = null;
+    computeAndRenderSafe();
+  }
+}
+
+/* ----------------------------- 自测（必须真实运行并显示 PASS/FAIL） ----------------------------- */
+function addTestItem(title, pass, details){
+  App.selfTest.items.push({title, pass, details});
+}
+function renderTests(){
+  const panel = document.getElementById("testPanel");
+  panel.innerHTML = "";
+  for (const it of App.selfTest.items){
+    const div = document.createElement("div");
+    div.className = "testItem";
+    div.innerHTML = `
+      <div class="top">
+        <div style="font-weight:850;">${it.title}</div>
+        <span class="pill ${it.pass ? "pass" : "fail"}">${it.pass ? "PASS" : "FAIL"}</span>
+      </div>
+      <div class="subtle">${it.details}</div>
+    `;
+    panel.appendChild(div);
+  }
+  if (App.selfTest.failCount>0){
+    setBanner("bad", `SELF-TEST FAILED：共 ${App.selfTest.failCount} 项失败。请查看右侧面板的 FAIL 解释与建议。`);
+  }
+}
+function runSelfTests(){
+  App.selfTest = {done:false, failCount:0, items:[]};
+
+  // 1) 状态机测试
+  try{
+    const s0 = {powerSwitch:false, holdSwitch:false, mode:"OFF"};
+    const s1 = fsmTransition(s0, {type:"SET_HOLD", value:true});
+    const s2 = fsmTransition(s1, {type:"SET_POWER", value:true});
+    const s3 = fsmTransition(s2, {type:"SET_POWER", value:false});
+
+    const ok = (s1.mode==="OFF") && (s2.mode==="HOLD") && (s3.mode==="OFF");
+    addTestItem("状态机：Power/HOLD 优先级 + OFF=NO SIGNAL", ok,
+      ok ? "HOLD 在 Power OFF 时不生效；OFF→ON 且 HOLD=ON 应进入 HOLD；ON→OFF 永远 OFF。"
+         : `期望：OFF->(hold on)仍OFF，ON+hold=HOLD，OFF优先。实际：${JSON.stringify({s1,s2,s3})}`);
+    if (!ok) App.selfTest.failCount++;
+  } catch(e){
+    addTestItem("状态机：Power/HOLD", false, "异常：" + String(e));
+    App.selfTest.failCount++;
+  }
+
+  // 2) 每种电路 DC 求解 ≥2 条测试（总≥6）
+  const dcTests = [
+    {c:"CE", p: defaultParamsCE()},
+    {c:"CE", p: {...defaultParamsCE(), VBQ:1.6}},
+    {c:"CC", p: defaultParamsCC()},
+    {c:"CC", p: {...defaultParamsCC(), VBQ:1.2}},
+    {c:"CB", p: defaultParamsCB()},
+    {c:"CB", p: {...defaultParamsCB(), VBQ:2.2}},
+  ];
+  let dcOk = true;
+  let dcMsg = [];
+  for (const t of dcTests){
+    const dc = solveDC(t.p, t.c);
+    const ok = dc.ok && isFiniteNum(dc.VCEQ) && isFiniteNum(dc.ICQ) && dc.ICQ>=0 && dc.VCEQ>-0.5;
+    dcOk = dcOk && ok;
+    dcMsg.push(`${t.c}: ${ok?"ok":"bad"} (VCEQ=${dc.VCEQ?.toFixed(2)}, ICQ=${dc.ICQ?.toExponential(2)}, region=${dc.region})`);
+  }
+  addTestItem("DC 求解：三电路 ≥6 例无 NaN/Inf 且 region 合理", dcOk, dcMsg.join("<br/>"));
+  if (!dcOk) App.selfTest.failCount++;
+
+  // 3) 削顶测试（CE 至少 3 条）：Ui 增大 none->single->both（允许不同顺序但必须能出现）
+  try{
+    const p = defaultParamsCE();
+    const dc = solveDC(p, "CE");
+    const Uis = [0.01, 0.08, 0.18];
+    const clips = [];
+    for (const u of Uis){
+      const wf = genWaveforms({...p, Ui:u, cycles:1, samples:260}, "CE", dc, "FAST");
+      clips.push(wf.clipInfo.clipType);
+    }
+    const hasNone = clips.includes("none");
+    const hasSingle = clips.includes("single");
+    const hasBoth = clips.includes("both");
+    const ok = hasNone && hasSingle && hasBoth;
+    addTestItem("削顶演化（CE）：Ui 增大应出现 none / single / both", ok,
+      `采样 Ui=${Uis.map(fmtV).join(", ")} → clipType=${clips.join(" → ")}。` +
+      (ok ? "" : "建议：增大 Ui 或调整 VBQ 让 Q 点靠边，以更明显触发削顶。"));
+    if (!ok) App.selfTest.failCount++;
+  } catch(e){
+    addTestItem("削顶演化（CE）", false, "异常：" + String(e));
+    App.selfTest.failCount++;
+  }
+
+  // 4) 动态牵制测试（≥3）：RL 变小或 RC 变小，UiMax 不应变大（允许小误差）
+  try{
+    const base = defaultParamsCE();
+    const dc = solveDC(base, "CE");
+    const b0 = calcDynamicBounds(base, "CE", dc).UiMax;
+
+    const p1 = {...base, RL:2000}; // heavier load
+    const dc1 = solveDC(p1, "CE");
+    const b1 = calcDynamicBounds(p1, "CE", dc1).UiMax;
+
+    const p2 = {...base, RC:1000};
+    const dc2 = solveDC(p2, "CE");
+    const b2 = calcDynamicBounds(p2, "CE", dc2).UiMax;
+
+    const p3 = {...base, RC:1000, RL:2000};
+    const dc3 = solveDC(p3, "CE");
+    const b3 = calcDynamicBounds(p3, "CE", dc3).UiMax;
+
+    const ok = (b1 <= b0*1.05) && (b2 <= b0*1.05) && (b3 <= b0*1.05);
+    addTestItem("动态牵制：负载更重（RL↓/RC↓）Ui_max 不应变大（容差 5%）", ok,
+      `基准 Ui_max=${fmtV(b0)}；RL↓→${fmtV(b1)}；RC↓→${fmtV(b2)}；双重→${fmtV(b3)}。`);
+    if (!ok) App.selfTest.failCount++;
+  } catch(e){
+    addTestItem("动态牵制（Ui_max）", false, "异常：" + String(e));
+    App.selfTest.failCount++;
+  }
+
+  // 5) 一致性测试：含直流显示 mean(VCE(t)) ≈ VCEQ（1–2%）
+  try{
+    const p = defaultParamsCE();
+    const dc = solveDC(p, "CE");
+    const wf = genWaveforms({...p, Ui:0.02, cycles:2, samples:420}, "CE", dc, "FAST");
+    const rel = Math.abs(wf.clipInfo.meanVCE - dc.VCEQ)/Math.max(1e-6, Math.abs(dc.VCEQ));
+    const ok = rel <= 0.02;
+    addTestItem("一致性：mean(VCE(t)) ≈ VCEQ（容差 2%）", ok,
+      `mean(VCE)=${fmtV(wf.clipInfo.meanVCE)}，VCEQ=${fmtV(dc.VCEQ)}，误差 ${(rel*100).toFixed(2)}%。`);
+    if (!ok) App.selfTest.failCount++;
+  } catch(e){
+    addTestItem("一致性：mean(VCE)≈VCEQ", false, "异常：" + String(e));
+    App.selfTest.failCount++;
+  }
+
+  // 6) 性能测试：一次完整刷新 < 50ms（常见参数）
+  try{
+    const p = defaultParamsCE();
+    const t0 = nowMs();
+    const dc = solveDC(p, "CE");
+    const b = calcDynamicBounds(p, "CE", dc);
+    const ch = genCharacteristics(p, "CE", dc);
+    const wf = genWaveforms(p, "CE", dc, "FAST");
+    const dt = nowMs()-t0;
+    const ok = dt < 50;
+    addTestItem("性能：一次完整计算（DC+牵制+特性+波形）< 50ms", ok,
+      `本机测得 ${dt.toFixed(1)} ms。若 FAIL：可降低 samples 或减少曲线数量（教学场景通常 OK）。`);
+    if (!ok) App.selfTest.failCount++;
+  } catch(e){
+    addTestItem("性能测试", false, "异常：" + String(e));
+    App.selfTest.failCount++;
+  }
+
+  App.selfTest.done = true;
+  renderTests();
+}
+
+/* ----------------------------- 初始化 & 事件绑定 ----------------------------- */
+function init(){
+  // preset select
+  fillPresetSelect();
+
+  // top selects
+  document.getElementById("circuitSelect").addEventListener("change", ()=>{
+    const newC = document.getElementById("circuitSelect").value;
+    App.state.circuit = newC;
+    buildParamPanel();
+    App.state.pending = false;
+    document.getElementById("pendingHint").style.display = "none";
+
+    // If HOLD, do not update display (freeze)
+    if (App.state.fsm.mode==="HOLD"){
+      App.state.pending = true;
+      document.getElementById("pendingHint").style.display = "block";
+      updateLiveDiag();
+      return;
+    }
+    // if running, recompute
+    if (App.state.fsm.mode==="RUN") computeAndRenderSafe();
+    else renderPowerOff();
+  });
+
+  document.getElementById("modelSelect").addEventListener("change", ()=>{
+    App.state.modelMode = document.getElementById("modelSelect").value;
+    onAnyParamChange("modelMode");
+  });
+
+  document.getElementById("constraintSelect").addEventListener("change", ()=>{
+    App.state.constraintMode = document.getElementById("constraintSelect").value;
+    onAnyParamChange("constraintMode");
+  });
+
+  document.getElementById("applyPresetBtn").addEventListener("click", ()=>{
+    const id = document.getElementById("presetSelect").value;
+    applyPresetById(id);
+  });
+
+  document.getElementById("autoCenterBtn").addEventListener("click", autoBiasCenter);
+  document.getElementById("autoJustBtn").addEventListener("click", autoJustNoDist);
+
+  document.getElementById("resetBtn").addEventListener("click", resetAll);
+  document.getElementById("revertBtn").addEventListener("click", revertLastGood);
+  document.getElementById("exportBtn").addEventListener("click", exportJSON);
+
+  document.getElementById("importBtn").addEventListener("click", ()=>{
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", async (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    await importJSONFile(file);
+    e.target.value = "";
+  });
+
+  document.getElementById("pngWaveBtn").addEventListener("click", exportPNGWave);
+  document.getElementById("pngCharBtn").addEventListener("click", exportPNGChar);
+
+  // Power/HOLD toggles
+  document.getElementById("powerBtn").addEventListener("click", ()=>{
+    setFSM({type:"SET_POWER", value: !App.state.fsm.powerSwitch});
+  });
+  document.getElementById("holdBtn").addEventListener("click", ()=>{
+    setFSM({type:"SET_HOLD", value: !App.state.fsm.holdSwitch});
+  });
+
+  // initial UI
+  buildParamPanel();
+  updatePowerHoldButtons();
+  renderPowerOff();
+
+  // self-tests (must run after load)
+  runSelfTests();
+
+  // start RUN loop (phase scrolling)
+  startRunLoop();
+}
+
+window.addEventListener("load", init);
+</script>
+</body>
+</html>
