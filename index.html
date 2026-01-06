@@ -25,17 +25,15 @@
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       background: radial-gradient(1200px 800px at 10% 10%, #18245a 0%, var(--bg) 45%, #070a14 100%);
+      background-size: 180% 180%;
+      animation: bgShift 18s ease-in-out infinite;
       color: var(--text);
-      /* disable global vertical scroll, internal panels scroll instead */
-      overflow-y: hidden;
-      /* fix body height to viewport */
-      height: 100vh;
+      overflow-x: hidden;
     }
-
-    html{
-      /* Ensure top-level no vertical scroll and fix height to viewport */
-      overflow-y: hidden;
-      height: 100vh;
+    @keyframes bgShift{
+      0%{background-position: 0% 0%;}
+      50%{background-position: 100% 60%;}
+      100%{background-position: 0% 0%;}
     }
     a{color:var(--accent)}
     .topbar{
@@ -62,7 +60,8 @@
       background: rgba(0,0,0,.18);
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 7px 9px;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .12s ease;
     }
     label{
       font-size:12px;
@@ -75,8 +74,10 @@
       border:1px solid rgba(255,255,255,.14);
       color: var(--text);
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 7px 10px;
       outline:none;
+      font-size: 13px;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .08s ease, filter .18s ease;
     }
     select:focus, button:focus, input[type="number"]:focus{
       border-color: rgba(90,215,255,.55);
@@ -87,12 +88,15 @@
       font-weight:650;
     }
     button:hover{filter: brightness(1.07)}
+    button:active{transform: translateY(1px) scale(0.99)}
+    button:active{transform: translateY(1px) scale(.99)}
     .toggle{
       min-width: 74px;
     }
     .toggle.on{
       border-color: rgba(46,229,157,.7);
       box-shadow: 0 0 0 3px rgba(46,229,157,.12);
+      animation: pulseGlow 2.2s ease-in-out infinite;
     }
     .toggle.off{
       border-color: rgba(255,77,109,.55);
@@ -112,6 +116,20 @@
     .btn-bad{
       background: rgba(255,77,109,.10);
       border-color: rgba(255,77,109,.35);
+    }
+
+    /* 顶部“更多”按钮：作为全局入口，略微加粗并与 chip 高度一致 */
+    #moreBtn{
+      font-weight: 900;
+      letter-spacing: .2px;
+      border-radius: 12px;
+      padding: 7px 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+    }
+
+    @keyframes pulseGlow{
+      0%,100%{filter: drop-shadow(0 0 0 rgba(46,229,157,.0));}
+      50%{filter: drop-shadow(0 0 10px rgba(46,229,157,.25));}
     }
 
     .banner{
@@ -163,41 +181,26 @@
       display:flex;
       gap: 12px;
       padding: 12px;
-      /* occupy remaining viewport minus topbar; topbar and margin approx 180px */
-      height: calc(100vh - 180px);
-      overflow: hidden;
     }
     @media (max-width: 1100px){
       .layout{flex-direction: column;}
     }
     .left{
-      /* 调整比例，使右侧更宽，左侧内容保持适中 */
-      flex: 0.9;
+      flex: .95;
       display:flex;
       flex-direction: column;
       gap: 12px;
       min-width: 520px;
-      /* 禁用左栏自身滚动，依靠折叠面板控制高度 */
-      overflow-y: hidden;
     }
     @media (max-width: 1100px){
       .left{min-width: 0;}
     }
     .right{
-      /* 调整比例和宽度以容纳竖排图表 */
-      flex: 1.1;
+      flex: 1.05;
       display:flex;
       flex-direction: column;
       gap:12px;
-      min-width: 520px;
-      /* 禁用右栏自身滚动，依靠折叠面板控制高度 */
-      overflow-y: hidden;
-    }
-
-    /* ----------- 调整左右区域顺序：将原右侧内容（图表）放置在左侧 ---------- */
-    @media (min-width: 0px){
-      .left{ order: 2; }
-      .right{ order: 1; }
+      min-width: 620px;
     }
     .card{
       background: linear-gradient(180deg, rgba(18,26,51,.80), rgba(15,23,48,.78));
@@ -273,73 +276,121 @@
       margin-top: 8px;
     }
     .plotGrid{
-      /* 两列网格布局，自动换行，每行显示两张图 */
       display:grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap:12px;
     }
-    @media (max-width: 1100px){
-      /* 在较窄屏幕上仍保持两列显示，如果需要可以降为单列 */
-      .plotGrid{grid-template-columns: repeat(2, 1fr);} 
+    @media (max-width: 1300px){
+      .plotGrid{grid-template-columns: 1fr 1fr;}
+    }
+    @media (max-width: 900px){
+      .plotGrid{grid-template-columns: 1fr;}
     }
     .plot{
-      /* 进一步缩小图表高度，使三行图表在标准屏幕下完全显示 */
-      height: 110px;
-      border-radius: 12px;
+      height: 290px;
+      border-radius: 14px;
       overflow:hidden;
       border: 1px solid rgba(255,255,255,.08);
       background: rgba(0,0,0,.10);
     }
-    /* 清理不再使用的.tall/.full样式，但保留兼容性 */
-    .plot.tall{ height: 120px; }
-    .plot.full{ height: 130px; }
+    .plot.tall{height: 310px;}
+    .plot.full{grid-column: 1 / -1; height: 360px;}
 
-  /* ----------- 新增：右侧“更多”信息面板样式 ----------- */
-  #morePanel{
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 340px;
-    height: 100%;
-    background: rgba(11,16,32,0.98);
-    backdrop-filter: blur(6px);
-    border-left: 1px solid rgba(255,255,255,.12);
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 20px;
-    display: none;
-  }
-  #morePanel h3{
-    margin-top: 14px;
-    font-size: 14px;
-    color: var(--accent);
-    font-weight: 800;
-  }
-  #morePanel p{
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  #morePanel .closeBtn{
-    display: inline-block;
-    margin-bottom: 12px;
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--accent);
-    background: rgba(0,0,0,.12);
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 8px;
-    padding: 4px 8px;
-  }
+    /* ----------- 左侧“更多/诊断”抽屉面板（覆盖层） ----------- */
+    .overlayMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      z-index: 2000;
+    }
+    .overlayMask.show{display:block; animation: fadeIn .16s ease-out;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-  /* 更多按钮固定在顶部右侧，避免被拥挤内容挤出 */
-  #moreBtn{
-    position: absolute;
-    right: 12px;
-    top: 8px;
-    z-index: 500;
-  }
+    #morePanel{
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 380px;
+      max-width: 92vw;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(18,26,51,.98), rgba(11,16,32,.98));
+      border-right: 1px solid rgba(255,255,255,.12);
+      box-shadow: 24px 0 60px rgba(0,0,0,.55);
+      transform: translateX(-102%);
+      transition: transform .22s ease;
+      padding: 14px;
+      overflow: auto;
+      z-index: 2001;
+    }
+    #morePanel.open{transform: translateX(0);}
+    .moreHeader{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .moreHeader .title{
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .closeBtn{
+      cursor:pointer;
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+    .moreSection{
+      background: rgba(0,0,0,.18);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .moreSection summary{
+      cursor: pointer;
+      font-weight: 850;
+      list-style: none;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap:10px;
+    }
+    .moreSection summary::-webkit-details-marker{display:none;}
+    .caret{opacity:.8; font-size: 12px;}
+    .moreSection[open] .caret{transform: rotate(90deg);}
+    .moreSection .content{margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.5;}
+
+    /* ----------- 首次访问关注弹窗 ----------- */
+    .modalMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2100;
+    }
+    .modalMask.show{display:flex; animation: fadeIn .16s ease-out;}
+    .modal{
+      width: 520px;
+      max-width: 94vw;
+      background: linear-gradient(180deg, rgba(18,26,51,.95), rgba(11,16,32,.95));
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.65);
+      padding: 16px;
+      animation: popIn .18s ease-out;
+    }
+    @keyframes popIn{from{transform: translateY(8px) scale(.98); opacity:.6}to{transform: translateY(0) scale(1); opacity:1}}
+    .modal h3{margin:0 0 6px; font-size: 15px;}
+    .modal p{margin:6px 0; color: var(--muted); font-size: 13px; line-height: 1.5;}
+    .modal .chk{display:flex; align-items:center; gap:8px; margin-top: 10px; color: var(--muted); font-size: 12px;}
+    .modalActions{display:flex; justify-content:flex-end; gap:10px; margin-top: 12px;}
 
     .testList{
       display:flex;
@@ -373,22 +424,6 @@
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
     .muted{color: var(--muted);}
 
-    /* 树状面板 summary 样式，增强可点击性 */
-    .collapsible summary {
-      cursor: pointer;
-      font-weight: 700;
-      padding: 6px 0;
-      color: var(--text);
-    }
-    .collapsible summary:hover {
-      color: var(--accent);
-    }
-    /* 显示折叠图标：使用 HTML5 默认箭头颜色 */
-    .collapsible summary::marker,
-    .collapsible summary::-webkit-details-marker {
-      color: var(--accent);
-    }
-
     .watermark{
       display:inline-block;
       padding: 2px 8px;
@@ -398,7 +433,7 @@
       letter-spacing: .6px;
       font-size: 11px;
     }
-    .wm-run{background: rgba(90,215,255,.10); border-color: rgba(90,215,255,.25); color: #c9f3ff;}
+    .wm-run{background: rgba(90,215,255,.10); border-color: rgba(90,215,255,.25); color: #c9f3ff; animation: pulseGlow 2.4s ease-in-out infinite;}
     .wm-hold{background: rgba(255,204,102,.10); border-color: rgba(255,204,102,.30); color: #fff0c9;}
     .wm-off{background: rgba(255,77,109,.10); border-color: rgba(255,77,109,.30); color: #ffd0d9;}
     .wm-nosig{background: rgba(180,190,220,.10); border-color: rgba(180,190,220,.20); color: #e3e9ff;}
@@ -424,6 +459,9 @@
 <body>
   <div class="topbar">
     <div class="row">
+      <!-- “更多”入口：打开左侧覆盖层（包含关于/模型说明/诊断/自测等） -->
+      <button id="moreBtn" class="btn-ghost" title="关于 / 模型说明 / 诊断 / 自测">☰ 更多</button>
+
       <div class="chip">
         <label>电路</label>
         <select id="circuitSelect">
@@ -474,8 +512,6 @@
       <input type="file" id="importFile" accept="application/json" style="display:none" />
       <button id="pngWaveBtn" class="btn-ghost">Export PNG（波形）</button>
       <button id="pngCharBtn" class="btn-ghost">Export PNG（特性）</button>
-      <!-- 新增“更多”按钮，可打开右侧额外信息面板 -->
-      <button id="moreBtn" class="btn-ghost">更多</button>
     </div>
 
     <div id="globalBanner" class="banner"></div>
@@ -488,76 +524,121 @@
   <div class="layout">
     <div class="left">
       <div class="card">
-        <!-- 折叠动态电路示意图以节省页面高度，默认收起。点击标题展开查看电路图。 -->
-        <details class="collapsible">
-          <summary>动态电路示意图（SVG） <span id="wmTag" class="watermark wm-nosig">NO SIGNAL</span></summary>
-          <div class="subtle">元件参数、Q 点与状态水印实时联动；<span class="kbd">HOLD</span> 时冻结画面（参数可改但不应用）。</div>
-          <div class="svgWrap" id="svgWrap"></div>
-        </details>
+        <h3>动态电路示意图（SVG） <span id="wmTag" class="watermark wm-nosig">NO SIGNAL</span></h3>
+        <div class="subtle">元件参数、Q 点与状态水印实时联动；<span class="kbd">HOLD</span> 时冻结画面（参数可改但不应用）。</div>
+        <div class="svgWrap" id="svgWrap"></div>
       </div>
 
       <div class="card">
-        <!-- 使用折叠面板包裹参数区域，可展开/收起以压缩高度 -->
-        <details class="collapsible">
-          <summary>参数（仅显示当前电路相关项）</summary>
-          <div class="subtle">内部统一 SI 单位计算；界面自动进行 mV/µA/kΩ 友好显示；Ui 最大允许值 Ui<sub>max</sub> 通过数值扫描/二分求解得到。</div>
-          <div id="pendingHint" class="banner warn" style="display:none;margin-top:10px;">
-            已冻结（HOLD）：你修改了参数，但图像不会更新。解除 HOLD 后将立即按当前参数刷新。
-          </div>
-          <div class="paramGrid" id="paramPanel" style="margin-top:10px;"></div>
-        </details>
-      </div>
-
-      <!-- 图表区已移至右侧栏; 保留注释占位，避免布局空洞 -->
-
-      <div class="card">
-        <!-- 模型说明改为可折叠面板，默认收起以节省空间 -->
-        <details class="collapsible">
-          <summary>模型说明 / 简化假设（避免误当精确 SPICE）</summary>
-          <div class="footerInfo">
-            <ul>
-              <li><b>教学近似模型</b>：输入采用指数关系（类似二极管方程），输出采用简化的 IC–VCE 曲线族（带 Early 近似 VA，含饱和“拐点”）。</li>
-              <li><b>耦合电容的处理</b>：DC 计算时视为开路；AC/瞬时波形中，使用“去直流电流”近似（例如 RL 电流按 <span class="mono">(v - VQ)/RL</span> 计算），让平均值仍与 Q 点一致，便于课堂讲解直流/交流负载线。</li>
-              <li><b>削顶失真</b>：当瞬时状态触及截止（IC≈0）或饱和（VCE≈VCE(sat)）时自动限幅，能演示先单边削顶再双边削顶，并提示“先截止/先饱和”。</li>
-              <li><b>增强模式</b>：尝试更强非线性求解；若出现数值溢出/异常，会自动降级回快速模式并给出提示（避免崩溃/卡死）。</li>
-            </ul>
-          </div>
-        </details>
+        <h3>参数（仅显示当前电路相关项）</h3>
+        <div class="subtle">内部统一 SI 单位计算；界面自动进行 mV/µA/kΩ 友好显示；Ui 最大允许值 Ui<sub>max</sub> 通过数值扫描/二分求解得到。</div>
+        <div id="pendingHint" class="banner warn" style="display:none;margin-top:10px;">
+          已冻结（HOLD）：你修改了参数，但图像不会更新。解除 HOLD 后将立即按当前参数刷新。
+        </div>
+        <div class="paramGrid" id="paramPanel" style="margin-top:10px;"></div>
       </div>
     </div>
 
     <div class="right">
       <div class="card">
-        <!-- 将诊断/自测面板放入可折叠面板，默认收起 -->
-        <details class="collapsible">
-          <summary>诊断 / 自测面板</summary>
-          <div class="subtle">页面加载后自动执行 runSelfTests()：状态机、DC 求解、削顶演化、动态牵制、一致性与性能等。若 FAIL：顶部将出现红条。</div>
-          <div class="testList" id="testPanel"></div>
-        </details>
-      </div>
-
-      <div class="card">
-        <!-- 将当前诊断面板放入可折叠面板，默认收起 -->
-        <details class="collapsible">
-          <summary>当前诊断（运行中）</summary>
-          <div id="liveDiag" class="subtle"></div>
-        </details>
-      </div>
-
-      <!-- 图表区：重新布置为两列网格，每行放置两张图，固定比例缩小，避免滚动 -->
-      <div class="card">
-        <h3>图表区（2列×3行）</h3>
-        <div class="subtle">所有五张图按两列网格排布；图表固定比例缩小，同时可通过顶部控件选择显示含直流或 AC 耦合。</div>
+        <h3>图表区（5 张）</h3>
+        <div class="subtle">右侧集中展示：ui(t)、uo(t)、输入特性 + Q 点、输出特性族 + 负载线 + 轨迹、传输特性 uo-ui（含线性段提示）。<span class="kbd">☰ 更多</span> 中可查看“模型说明/诊断/自测/快捷键”。</div>
         <div class="plotGrid" style="margin-top:10px;">
-          <!-- 依次放置五个图表，无折叠，统一高度，自动换行 -->
           <div id="plotUi" class="plot"></div>
           <div id="plotUo" class="plot"></div>
-          <div id="plotIn" class="plot"></div>
-          <div id="plotTransfer" class="plot"></div>
-          <div id="plotOut" class="plot"></div>
+          <div id="plotIn" class="plot tall"></div>
+          <div id="plotTransfer" class="plot tall"></div>
+          <div id="plotOut" class="plot full"></div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- =============== 左侧覆盖层：更多 / 说明 / 诊断 / 自测 =============== -->
+  <div id="moreOverlay" class="overlayMask" aria-hidden="true"></div>
+  <div id="morePanel" role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+    <div class="moreHeader">
+      <div id="moreTitle" class="title">更多 / 说明 / 诊断</div>
+      <button id="closeMoreBtn" class="closeBtn">关闭</button>
+    </div>
+
+    <details class="moreSection" open>
+      <summary>关于本工具 <span class="caret">▶</span></summary>
+      <div class="content">
+        <div><b>定位</b>：面向课堂/自学的 BJT 三基本放大电路（CE/CC/CB）交互演示。强调现象正确、稳定、可解释，不承诺 SPICE 精度。</div>
+        <div style="margin-top:6px;"><b>作者</b>：B站 @不踩白块的黑块（点击下方链接关注支持更新）</div>
+        <div style="margin-top:6px;"><a href="https://space.bilibili.com/269896665" target="_blank" rel="noopener">https://space.bilibili.com/269896665</a></div>
+      </div>
+    </details>
+
+    <details class="moreSection">
+      <summary>快捷键 / 交互 <span class="caret">▶</span></summary>
+      <div class="content">
+        <div><b>输出特性图：</b>单击曲线上任一点，将自动调节 <span class="mono">VBQ</span> 使 Q 点的 <span class="mono">VCEQ</span> 尽量靠近你点击的横坐标（用于快速移动工作点）。</div>
+        <div style="margin-top:6px;"><b>方向键：</b>当光标不在输入框内时：</div>
+        <ul style="margin:6px 0 0 18px; padding:0;">
+          <li><span class="kbd">←</span>/<span class="kbd">→</span>：微调偏置 <span class="mono">VBQ</span>（Shift=粗调，Alt=细调）</li>
+          <li><span class="kbd">↑</span>/<span class="kbd">↓</span>：微调输入幅度 <span class="mono">Ui</span>（同样支持 Shift/Alt）</li>
+        </ul>
+        <div style="margin-top:6px;">说明：Plotly 对“拖拽散点”支持有限，因此用“单击+方向键”作为稳健替代方案。</div>
+      </div>
+    </details>
+
+    <details class="moreSection">
+      <summary>模型说明 / 简化假设 <span class="caret">▶</span></summary>
+      <div class="content">
+        <ul style="margin:6px 0 0 18px; padding:0;">
+          <li><b>教学近似模型</b>：输入采用指数关系（类似二极管方程），输出采用简化的 IC–VCE 曲线族（可选 Early 近似 VA，含饱和“拐点”）。</li>
+          <li><b>耦合电容处理</b>：DC 视为开路；AC/瞬时波形采用“去直流电流”近似（例如 RL 电流按 <span class="mono">(v - VQ)/RL</span> 计算）以保证平均值与 Q 点一致。</li>
+          <li><b>削顶失真</b>：触及截止（IC≈0）或饱和（VCE≈VCE(sat)）自动限幅，能演示单边→双边削顶，并提示“先截止/先饱和”。</li>
+          <li><b>增强模式</b>：尝试更强非线性求解；若不稳定会自动降级回快速模式并提示（避免崩溃/卡死）。</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="moreSection">
+      <summary>诊断 / 自测 <span class="caret">▶</span></summary>
+      <div class="content">
+        <div>页面加载后自动执行 <span class="mono">runSelfTests()</span>：状态机、DC 求解、削顶演化、动态牵制、一致性与性能等。</div>
+        <div class="testList" id="testPanel"></div>
+        <div style="margin-top:10px; font-weight:800;">当前诊断（运行中）</div>
+        <div id="liveDiag" class="subtle"></div>
+      </div>
+    </details>
+
+    <details class="moreSection">
+      <summary>版本更新日志 <span class="caret">▶</span></summary>
+      <div class="content">
+        <div><b>v1.0</b>：基础功能（CE/CC/CB、5 图、Q 点、状态机、牵制、自测、导入导出）。</div>
+        <div><b>v1.1</b>：图表区三列布局与更清晰的 UI 分区；“更多”覆盖层集成模型说明与诊断。</div>
+        <div><b>v1.2</b>：首次访问关注弹窗（可“不再提醒”）；增加动画与交互说明；输出特性图支持“单击移动 Q 点”。</div>
+      </div>
+    </details>
+
+    <details class="moreSection">
+      <summary>源码可见性与版权说明 <span class="caret">▶</span></summary>
+      <div class="content">
+        <div><b>重要：</b>本工具为纯前端单文件 HTML。在浏览器端运行的任何网页，其源码与资源都可以被访问者获取（查看源代码/DevTools/网络缓存等）。</div>
+        <div style="margin-top:6px;">若需要真正的源码保护，请考虑：将核心算法移到服务器端（API 返回曲线数据）、或用许可证/水印/法律声明保护版权。前端可做“弱防护”（如混淆/禁用右键）但不能提供绝对安全。</div>
+      </div>
+    </details>
+  </div>
+
+  <!-- =============== 首次访问：关注提示弹窗 =============== -->
+  <div id="followModal" class="modalMask" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="followTitle">
+      <h3 id="followTitle">第一次来？欢迎关注作者支持更新</h3>
+      <p>为了持续维护与完善本工具，建议你前往作者 B 站主页关注：<a href="https://space.bilibili.com/269896665" target="_blank" rel="noopener">@不踩白块的黑块</a></p>
+      <label class="chk"><input id="followDontShow" type="checkbox" /> 不再提醒</label>
+      <div class="modalActions">
+        <button id="followGoBtn" class="btn-good">前往B站</button>
+        <button id="followOkBtn" class="btn-ghost">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 10px 12px 22px; color: rgba(170,179,214,.9); font-size: 12px; text-align:center;">
+    © 教学演示工具（教学近似模型）｜作者 B站：<a href="https://space.bilibili.com/269896665" target="_blank" rel="noopener">@不踩白块的黑块</a>
   </div>
 
 <script>
@@ -1526,12 +1607,9 @@ function buildParamPanel(){
 
 /* ----------------------------- SVG 电路图 ----------------------------- */
 function svgForCircuit(circuit, p, dc, fsmMode, extra){
-  const W=860, H=240;
-  const statusText = (fsmMode==="OFF") ? "POWER OFF / NO SIGNAL"
-    : (fsmMode==="HOLD") ? "HOLD"
-    : "RUN";
-  const wmClass = (fsmMode==="OFF") ? "wm-nosig" : (fsmMode==="HOLD") ? "wm-hold" : "wm-run";
-  const u = (x)=> String(x.toFixed(1));
+  // 课本风格：用更接近教材的器件符号（电阻/电容/三极管）绘制三种基本放大电路
+  const W=920, H=280;
+  const statusText = (!p || fsmMode==="OFF") ? "POWER OFF / NO SIGNAL" : (fsmMode==="HOLD") ? "HOLD" : "RUN";
   const VCC = fmtV(p.VCC);
   const beta = `${Math.round(p.beta)}`;
   const Ui = fmtV(p.Ui);
@@ -1543,193 +1621,262 @@ function svgForCircuit(circuit, p, dc, fsmMode, extra){
   const RC = isFinite(p.RC) ? fmtOhm(p.RC) : "—";
   const RE = isFinite(p.RE) ? fmtOhm(p.RE) : "—";
   const RL = isFinite(p.RL) ? fmtOhm(p.RL) : "—";
+
   let title = "";
-  if (circuit==="CE") title = "共射 CE 放大电路（输出：集电极）";
-  if (circuit==="CC") title = "共集 CC / 射极跟随器（输出：射极）";
-  if (circuit==="CB") title = "共基 CB 放大电路（输入：射极，基极为 AC 地）";
-  const resistor = (x,y,w,label)=>{
-    return `
-      <g>
-        <polyline points="${x},${y} ${x+10},${y-8} ${x+20},${y+8} ${x+30},${y-8} ${x+40},${y+8} ${x+50},${y-8} ${x+60},${y+8} ${x+70},${y-8} ${x+80},${y}" fill="none" stroke="#cfe6ff" stroke-width="2"/>
-        <text x="${x+w/2}" y="${y-14}" fill="#e9eeff" font-size="12" text-anchor="middle">${label}</text>
-      </g>
-    `;
-  };
+  if (circuit==="CE") title = "共射 CE 基本放大电路";
+  if (circuit==="CC") title = "共集 CC（射极跟随器）";
+  if (circuit==="CB") title = "共基 CB 基本放大电路";
+
+  const wire = (x1,y1,x2,y2)=> `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#cfe6ff" stroke-width="2"/>`;
+  const node = (x,y)=> `<circle cx="${x}" cy="${y}" r="3.6" fill="#cfe6ff" opacity=".95"/>`;
   const ground = (x,y)=>`
     <g>
       <line x1="${x}" y1="${y}" x2="${x}" y2="${y+10}" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="${x-12}" y1="${y+10}" x2="${x+12}" y2="${y+10}" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="${x-9}" y1="${y+16}" x2="${x+9}" y2="${y+16}" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${x-14}" y1="${y+10}" x2="${x+14}" y2="${y+10}" stroke="#cfe6ff" stroke-width="2"/>
+      <line x1="${x-10}" y1="${y+16}" x2="${x+10}" y2="${y+16}" stroke="#cfe6ff" stroke-width="2"/>
       <line x1="${x-6}" y1="${y+21}" x2="${x+6}" y2="${y+21}" stroke="#cfe6ff" stroke-width="2"/>
     </g>
   `;
-  const transistor = (x,y,label)=>{
+  const rV = (x,yTop,label)=>{
+    const h = 58;
     return `
       <g>
-        <circle cx="${x}" cy="${y}" r="24" fill="rgba(90,215,255,.08)" stroke="rgba(90,215,255,.55)" stroke-width="2"/>
-        <text x="${x}" y="${y+4}" fill="#e9eeff" font-size="13" text-anchor="middle" font-weight="800">${label}</text>
+        ${wire(x,yTop, x, yTop+10)}
+        <rect x="${x-9}" y="${yTop+10}" width="18" height="${h}" rx="3" ry="3" fill="rgba(207,230,255,.10)" stroke="#cfe6ff" stroke-width="2"/>
+        ${wire(x,yTop+10+h, x, yTop+10+h+10)}
+        <text x="${x+18}" y="${yTop+10+h/2+4}" fill="#e9eeff" font-size="12" font-weight="800">${label}</text>
       </g>
     `;
   };
-  const watermark = `
-    <g opacity="0.95">
-      <rect x="${W-210}" y="12" rx="12" ry="12" width="192" height="28"
-        fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
-      <text x="${W-114}" y="31" fill="#e9eeff" font-size="12" text-anchor="middle" font-weight="900">${statusText}</text>
-    </g>
-  `;
+  const rH = (xLeft,y,label)=>{
+    const w = 66;
+    return `
+      <g>
+        ${wire(xLeft, y, xLeft+12, y)}
+        <rect x="${xLeft+12}" y="${y-9}" width="${w}" height="18" rx="3" ry="3" fill="rgba(207,230,255,.10)" stroke="#cfe6ff" stroke-width="2"/>
+        ${wire(xLeft+12+w, y, xLeft+12+w+12, y)}
+        <text x="${xLeft+12+w/2}" y="${y-14}" fill="#e9eeff" font-size="12" font-weight="800" text-anchor="middle">${label}</text>
+      </g>
+    `;
+  };
+  const capH = (xLeft,y,label)=>{
+    return `
+      <g>
+        ${wire(xLeft, y, xLeft+14, y)}
+        <line x1="${xLeft+14}" y1="${y-12}" x2="${xLeft+14}" y2="${y+12}" stroke="#cfe6ff" stroke-width="2"/>
+        <line x1="${xLeft+26}" y1="${y-12}" x2="${xLeft+26}" y2="${y+12}" stroke="#cfe6ff" stroke-width="2"/>
+        ${wire(xLeft+26, y, xLeft+40, y)}
+        <text x="${xLeft+20}" y="${y-18}" fill="#aab3d6" font-size="11" text-anchor="middle">${label}</text>
+      </g>
+    `;
+  };
+  const sineSource = (x,y,label)=>{
+    return `
+      <g>
+        <circle cx="${x}" cy="${y}" r="18" fill="rgba(90,215,255,.06)" stroke="rgba(207,230,255,.75)" stroke-width="2"/>
+        <path d="M ${x-10} ${y} C ${x-6} ${y-8}, ${x-2} ${y-8}, ${x+2} ${y} C ${x+6} ${y+8}, ${x+10} ${y+8}, ${x+14} ${y}" fill="none" stroke="rgba(207,230,255,.85)" stroke-width="2"/>
+        <text x="${x}" y="${y+34}" fill="#e9eeff" font-size="12" font-weight="800" text-anchor="middle">${label}</text>
+      </g>
+    `;
+  };
+  const dcSource = (x,y,label)=>{
+    // 简化电压源符号（电池）
+    return `
+      <g>
+        <line x1="${x-10}" y1="${y-10}" x2="${x+10}" y2="${y-10}" stroke="#cfe6ff" stroke-width="2"/>
+        <line x1="${x-6}" y1="${y-16}" x2="${x+6}" y2="${y-16}" stroke="#cfe6ff" stroke-width="2"/>
+        <text x="${x+16}" y="${y-12}" fill="#aab3d6" font-size="11">${label}</text>
+      </g>
+    `;
+  };
+  const npn = (xBaseLine,yMid)=>{
+    const xB = xBaseLine;
+    const yTop = yMid-34;
+    const yBot = yMid+34;
+    const xC = xBaseLine+84;
+    const yC = yMid-54;
+    const xE = xBaseLine+84;
+    const yE = yMid+54;
+    const xBnode = xBaseLine-90;
+    const yBnode = yMid;
+    // emitter arrow (NPN: arrow outwards)
+    const ax = xBaseLine+62, ay = yMid+36;
+    const arrow = `<polygon points="${ax},${ay} ${ax-8},${ay+3} ${ax-4},${ay-6}" fill="#cfe6ff"/>`;
+    return {
+      B:{x:xBnode,y:yBnode},
+      C:{x:xC,y:yC},
+      E:{x:xE,y:yE},
+      svg: `
+        <g>
+          <circle cx="${xBaseLine+46}" cy="${yMid}" r="56" fill="rgba(90,215,255,.05)" stroke="rgba(90,215,255,.18)" stroke-width="2"/>
+          ${wire(xBnode, yBnode, xB, yBnode)}
+          <line x1="${xB}" y1="${yTop}" x2="${xB}" y2="${yBot}" stroke="#cfe6ff" stroke-width="2"/>
+          <line x1="${xB}" y1="${yMid-14}" x2="${xC}" y2="${yC}" stroke="#cfe6ff" stroke-width="2"/>
+          <line x1="${xB}" y1="${yMid+14}" x2="${xE}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
+          ${arrow}
+          <text x="${xBnode-6}" y="${yBnode-8}" fill="#aab3d6" font-size="11" text-anchor="end">B</text>
+          <text x="${xC+8}" y="${yC-6}" fill="#aab3d6" font-size="11">C</text>
+          <text x="${xE+8}" y="${yE+14}" fill="#aab3d6" font-size="11">E</text>
+          <text x="${xBaseLine+46}" y="${yMid+4}" fill="#e9eeff" font-size="12" font-weight="900" text-anchor="middle">NPN</text>
+        </g>
+      `
+    };
+  };
+
+  // 信息框 + 右上角状态水印
   const qBox = `
     <g>
-      <rect x="12" y="12" rx="14" ry="14" width="320" height="86"
-        fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
+      <rect x="12" y="12" rx="14" ry="14" width="360" height="90" fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
       <text x="26" y="34" fill="#e9eeff" font-size="13" font-weight="900">${title}</text>
       <text x="26" y="54" fill="#aab3d6" font-size="12">VCC=${VCC}  β=${beta}  Ui=${Ui}  f=${f}</text>
       <text x="26" y="74" fill="#aab3d6" font-size="12">VBQ=${VBQ}  Q: VCEQ=${VCEQ}  ICQ=${ICQ}${(circuit==="CB")?`  IEQ=${IEQ}`:""}</text>
     </g>
   `;
+  const watermark = `
+    <g opacity="0.95">
+      <rect x="${W-220}" y="12" rx="12" ry="12" width="202" height="28" fill="rgba(0,0,0,.25)" stroke="rgba(255,255,255,.12)"/>
+      <text x="${W-119}" y="31" fill="#e9eeff" font-size="12" text-anchor="middle" font-weight="900">${statusText}</text>
+    </g>
+  `;
+
   let body = "";
   if (circuit==="CE"){
-    const xC=520, yC=76;
-    const xB=420, yB=120;
-    const xE=520, yE=156;
+    const yV = 48;
+    const xCnode = 640, yCnode = 96;
+    const xEnode = 640, yEnode = 200;
+    const T = npn(530, 148);
+    // VCC symbol at top right
     body = `
-      <!-- supply -->
-      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
-      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- RC to VCC -->
-      <line x1="700" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC-90,70,80, `RC=${RC}`)}
-      <line x1="${xC-10}" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- transistor -->
-      ${transistor(xC,yB,"NPN")}
-      <!-- collector lead -->
-      <line x1="${xC}" y1="${yB-24}" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xC+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
-      <!-- base lead + input -->
-      <line x1="${xC-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
-      <text x="${xB-92}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">ui(t)</text>
-      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
-      <!-- emitter lead -->
-      <line x1="${xC}" y1="${yB+24}" x2="${xC}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xC+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
-      <!-- RE to ground -->
-      <line x1="${xC}" y1="${yE}" x2="${xC}" y2="${yE+20}" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC-40,yE+40,80, `RE=${RE}`)}
-      <line x1="${xC}" y1="${yE+40}" x2="${xC}" y2="${yE+70}" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xC,yE+70)}
-      <!-- RL (AC) from output node to ground via coupling cap (symbolic) -->
-      <line x1="${xC}" y1="70" x2="${xC+86}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <rect x="${xC+86}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <rect x="${xC+100}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <line x1="${xC+110}" y1="70" x2="${xC+160}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC+160,70,80, `RL=${RL}`)}
-      <line x1="${xC+240}" y1="70" x2="${xC+240}" y2="110" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xC+240,110)}
-      <text x="${xC+84}" y="48" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
-      <!-- output label -->
-      <text x="${xC+10}" y="92" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>C</sub></text>
+      <text x="800" y="34" fill="#e9eeff" font-size="12" font-weight="900">VCC=${VCC}</text>
+      ${dcSource(780, 48, "")}
+      ${wire(780, yV, 640, yV)}
+      ${rV(640, yV, `RC=${RC}`)}
+      ${wire(640, yV+78, xCnode, yCnode)}
+      ${node(xCnode, yCnode)}
+
+      ${T.svg}
+      ${wire(T.C.x, T.C.y, xCnode, yCnode)}
+      ${node(T.C.x, T.C.y)}
+      ${wire(T.E.x, T.E.y, xEnode, yEnode)}
+      ${node(xEnode, yEnode)}
+
+      <!-- 发射极电阻 -->
+      ${rV(xEnode, yEnode, `RE=${RE}`)}
+      ${ground(xEnode, yEnode+92)}
+
+      <!-- 输入：ui(t) 通过耦合电容到基极 -->
+      ${sineSource(150, 148, "ui(t)")}
+      ${wire(168, 148, 220, 148)}
+      ${capH(220, 148, "C_in")}
+      ${wire(260, 148, T.B.x, T.B.y)}
+      ${node(T.B.x, T.B.y)}
+      <text x="${T.B.x-4}" y="${T.B.y-16}" fill="#aab3d6" font-size="11" text-anchor="end">VBQ=${VBQ}</text>
+      ${wire(T.B.x, T.B.y, T.B.x, 210)}
+      ${dcSource(T.B.x, 236, "VBQ")}
+      ${ground(T.B.x, 246)}
+
+      <!-- 输出：集电极 -> 耦合电容 -> RL -->
+      <text x="${xCnode+6}" y="${yCnode-10}" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V_C</text>
+      ${wire(xCnode, yCnode, 700, yCnode)}
+      ${capH(700, yCnode, "C_c")}
+      ${wire(740, yCnode, 800, yCnode)}
+      ${node(800, yCnode)}
+      ${rV(800, yCnode, `RL=${RL}`)}
+      ${ground(800, yCnode+92)}
     `;
   }
   if (circuit==="CC"){
-    const xB=420, yB=110;
-    const xE=520, yE=152;
+    const yV = 48;
+    const xCnode = 640, yCnode = 96;
+    const xEnode = 640, yEnode = 200;
+    const T = npn(530, 148);
     body = `
-      <!-- supply -->
-      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
-      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- transistor -->
-      ${transistor(xE,yB,"NPN")}
-      <!-- collector tied to VCC -->
-      <line x1="${xE}" y1="${yB-24}" x2="${xE}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="${xE}" y1="70" x2="700" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xE+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
-      <!-- base -->
-      <line x1="${xE-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
-      <text x="${xB-92}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">ui(t)</text>
-      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
-      <!-- emitter output -->
-      <line x1="${xE}" y1="${yB+24}" x2="${xE}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xE+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
-      <text x="${xE+10}" y="${yE+16}" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>E</sub></text>
-      <!-- RE to ground -->
-      <line x1="${xE}" y1="${yE}" x2="${xE}" y2="${yE+18}" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xE-40,yE+38,80, `RE=${RE}`)}
-      <line x1="${xE}" y1="${yE+38}" x2="${xE}" y2="${yE+68}" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xE,yE+68)}
-      <!-- RL via coupling capacitor -->
-      <line x1="${xE}" y1="${yE}" x2="${xE+86}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      <rect x="${xE+86}" y="${yE-14}" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <rect x="${xE+100}" y="${yE-14}" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <line x1="${xE+110}" y1="${yE}" x2="${xE+160}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xE+160,yE,80, `RL=${RL}`)}
-      <line x1="${xE+240}" y1="${yE}" x2="${xE+240}" y2="${yE+40}" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xE+240,yE+40)}
-      <text x="${xE+84}" y="${yE-22}" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
+      <text x="800" y="34" fill="#e9eeff" font-size="12" font-weight="900">VCC=${VCC}</text>
+      ${dcSource(780, 48, "")}
+      ${wire(780, yV, xCnode, yV)}
+      ${wire(xCnode, yV, xCnode, yCnode)}
+      ${node(xCnode, yCnode)}
+
+      ${T.svg}
+      ${wire(T.C.x, T.C.y, xCnode, yCnode)}
+      ${wire(T.E.x, T.E.y, xEnode, yEnode)}
+      ${node(xEnode, yEnode)}
+
+      <!-- 发射极电阻 -->
+      ${rV(xEnode, yEnode, `RE=${RE}`)}
+      ${ground(xEnode, yEnode+92)}
+
+      <!-- 输入：ui(t) 通过耦合电容到基极 -->
+      ${sineSource(150, 148, "ui(t)")}
+      ${wire(168, 148, 220, 148)}
+      ${capH(220, 148, "C_in")}
+      ${wire(260, 148, T.B.x, T.B.y)}
+      ${node(T.B.x, T.B.y)}
+      <text x="${T.B.x-4}" y="${T.B.y-16}" fill="#aab3d6" font-size="11" text-anchor="end">VBQ=${VBQ}</text>
+      ${wire(T.B.x, T.B.y, T.B.x, 210)}
+      ${dcSource(T.B.x, 236, "VBQ")}
+      ${ground(T.B.x, 246)}
+
+      <!-- 输出：射极 -->
+      <text x="${xEnode+6}" y="${yEnode-10}" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V_E</text>
+
+      <!-- 输出经耦合电容接入 RL -->
+      ${wire(xEnode, yEnode, 700, yEnode)}
+      ${capH(700, yEnode, "C_c")}
+      ${wire(740, yEnode, 800, yEnode)}
+      ${node(800, yEnode)}
+      ${rV(800, yEnode, `RL=${RL}`)}
+      ${ground(800, yEnode+92)}
     `;
   }
   if (circuit==="CB"){
-    const xC=520, yC=76;
-    const xB=430, yB=118;
-    const xE=520, yE=160;
+    const yV = 48;
+    const xCnode = 640, yCnode = 96;
+    const xEnode = 640, yEnode = 200;
+    const T = npn(530, 148);
     body = `
-      <!-- supply -->
-      <text x="708" y="62" fill="#e9eeff" font-size="12" font-weight="800">VCC=${VCC}</text>
-      <line x1="700" y1="70" x2="700" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="688" y1="46" x2="712" y2="46" stroke="#cfe6ff" stroke-width="2"/>
-      <line x1="692" y1="40" x2="708" y2="40" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- RC -->
-      <line x1="700" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC-90,70,80, `RC=${RC}`)}
-      <line x1="${xC-10}" y1="70" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- transistor -->
-      ${transistor(xC,yB,"NPN")}
-      <line x1="${xC}" y1="${yB-24}" x2="${xC}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xC+10}" y="${yB-34}" fill="#aab3d6" font-size="11">C</text>
-      <!-- base is common (AC ground) -->
-      <line x1="${xC-24}" y1="${yB}" x2="${xB}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-10}" y="${yB-8}" fill="#aab3d6" font-size="11">B</text>
-      <text x="${xB-142}" y="${yB-6}" fill="#e9eeff" font-size="12" font-weight="800">基极：AC 地</text>
-      <line x1="${xB-80}" y1="${yB}" x2="${xB-140}" y2="${yB}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xB-140}" y="${yB-10}" fill="#aab3d6" font-size="11">VBQ=${VBQ}</text>
-      <!-- emitter input -->
-      <line x1="${xC}" y1="${yB+24}" x2="${xC}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      <text x="${xC+10}" y="${yB+40}" fill="#aab3d6" font-size="11">E</text>
-      <text x="${xC-140}" y="${yE+8}" fill="#e9eeff" font-size="12" font-weight="800">ui(t) → 射极</text>
-      <line x1="${xC-40}" y1="${yE}" x2="${xC-140}" y2="${yE}" stroke="#cfe6ff" stroke-width="2"/>
-      <!-- RE for bias -->
-      <line x1="${xC}" y1="${yE}" x2="${xC}" y2="${yE+18}" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC-40,yE+38,80, `RE=${RE}`)}
-      <line x1="${xC}" y1="${yE+38}" x2="${xC}" y2="${yE+68}" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xC,yE+68)}
-      <text x="${xC+10}" y="${yE+16}" fill="#aab3d6" font-size="11">偏置电阻</text>
-      <!-- RL (AC) -->
-      <line x1="${xC}" y1="70" x2="${xC+86}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      <rect x="${xC+86}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <rect x="${xC+100}" y="56" width="10" height="28" fill="rgba(207,230,255,.25)" stroke="#cfe6ff"/>
-      <line x1="${xC+110}" y1="70" x2="${xC+160}" y2="70" stroke="#cfe6ff" stroke-width="2"/>
-      ${resistor(xC+160,70,80, `RL=${RL}`)}
-      <line x1="${xC+240}" y1="70" x2="${xC+240}" y2="110" stroke="#cfe6ff" stroke-width="2"/>
-      ${ground(xC+240,110)}
-      <text x="${xC+84}" y="48" fill="#aab3d6" font-size="11">C<sub>c</sub>（AC短/DC开）</text>
-      <text x="${xC+10}" y="92" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V<sub>C</sub></text>
+      <text x="800" y="34" fill="#e9eeff" font-size="12" font-weight="900">VCC=${VCC}</text>
+      ${dcSource(780, 48, "")}
+      ${wire(780, yV, 640, yV)}
+      ${rV(640, yV, `RC=${RC}`)}
+      ${wire(640, yV+78, xCnode, yCnode)}
+      ${node(xCnode, yCnode)}
+
+      ${T.svg}
+      ${wire(T.C.x, T.C.y, xCnode, yCnode)}
+      ${wire(T.E.x, T.E.y, xEnode, yEnode)}
+      ${node(xEnode, yEnode)}
+
+      <!-- 基极：直流偏置 + 交流接地 -->
+      ${node(T.B.x, T.B.y)}
+      <text x="${T.B.x-4}" y="${T.B.y-16}" fill="#aab3d6" font-size="11" text-anchor="end">VBQ=${VBQ}（AC地）</text>
+      ${wire(T.B.x, T.B.y, T.B.x, 210)}
+      ${capH(T.B.x-20, 224, "C_b")}
+      ${ground(T.B.x, 246)}
+
+      <!-- 发射极偏置电阻（CB 常见偏置） -->
+      ${rV(xEnode, yEnode, `RE=${RE}`)}
+      ${ground(xEnode, yEnode+92)}
+
+      <!-- 输入：ui(t) 加到射极 -->
+      ${sineSource(150, 200, "ui(t)")}
+      ${wire(168, 200, 220, 200)}
+      ${capH(220, 200, "C_in")}
+      ${wire(260, 200, xEnode, yEnode)}
+
+      <!-- 输出：集电极 -->
+      <text x="${xCnode+6}" y="${yCnode-10}" fill="#5ad7ff" font-size="12" font-weight="900">uo(t)=V_C</text>
+      ${wire(xCnode, yCnode, 700, yCnode)}
+      ${capH(700, yCnode, "C_c")}
+      ${wire(740, yCnode, 800, yCnode)}
+      ${node(800, yCnode)}
+      ${rV(800, yCnode, `RL=${RL}`)}
+      ${ground(800, yCnode+92)}
     `;
   }
+
   return `
     <svg viewBox="0 0 ${W} ${H}" width="100%" height="100%" role="img" aria-label="circuit">
-      <defs>
-        <linearGradient id="g1" x1="0" x2="1">
-          <stop offset="0" stop-color="rgba(90,215,255,.18)"/>
-          <stop offset="1" stop-color="rgba(46,229,157,.10)"/>
-        </linearGradient>
-      </defs>
       <rect x="0" y="0" width="${W}" height="${H}" rx="18" ry="18" fill="rgba(0,0,0,.10)" stroke="rgba(255,255,255,.10)"/>
       ${qBox}
       ${watermark}
@@ -2120,10 +2267,10 @@ function renderAllFromComputed(computed){
     }
   ];
   Plotly.react("plotOut", traces, lOut, {displayModeBar:false, responsive:true});
+  // 交互绑定（单击移动 Q 点等）。Plotly.react 之后绑定，确保不丢失监听器。
+  bindPlotInteractions();
   applyDynamicUiMaxToControls();
   updateLiveDiag(computed);
-  // Attach click handler to output characteristics chart for interactive bias adjustment
-  enableQPointAdjustment();
 }
 
 /* ----------------------------- Power OFF 显示（NO SIGNAL） ----------------------------- */
@@ -2151,6 +2298,8 @@ function renderPowerOff(customText){
   Plotly.react("plotIn", [], offLayout("输入特性（灰置）", "V", "I"), {displayModeBar:false, responsive:true});
   Plotly.react("plotTransfer", [], offLayout("传输特性（灰置）", "ui", "uo"), {displayModeBar:false, responsive:true});
   Plotly.react("plotOut", [], offLayout("输出特性（灰置）", "VCE", "IC"), {displayModeBar:false, responsive:true});
+  // 保证图表交互事件已绑定（OFF 状态下不会生效，但上电后可直接使用）
+  bindPlotInteractions();
   updateLiveDiag();
 }
 
@@ -2412,75 +2561,12 @@ async function importJSONFile(file){
   if (App.state.fsm.mode==="OFF") renderPowerOff();
 }
 function exportPNGWave(){
-  // Gather the UI and UO plots as PNG images using Plotly.toImage and open them in a new window
-  const ids = ["plotUi","plotUo"];
-  Promise.all(ids.map(id => Plotly.toImage(id, {format:"png"}))).then(images => {
-    const html = images.map(src => `<img style="display:block;margin-bottom:10px;width:100%;max-width:600px;" src="${src}"/>`).join("");
-    const w = window.open("");
-    w.document.write(`<html><head><title>Exported Waveforms</title></head><body style="background:#0b1020;color:#fff;font-family:sans-serif;">${html}</body></html>`);
-    w.document.close();
-  });
+  Plotly.downloadImage("plotUo", {format:"png", filename:"uo_waveform"});
+  setTimeout(()=> Plotly.downloadImage("plotUi", {format:"png", filename:"ui_waveform"}), 350);
 }
 function exportPNGChar(){
-  // Gather the characteristic plots as PNG images using Plotly.toImage and open them in a new window
-  const ids = ["plotOut","plotIn","plotTransfer"];
-  Promise.all(ids.map(id => Plotly.toImage(id, {format:"png"}))).then(images => {
-    const html = images.map(src => `<img style="display:block;margin-bottom:10px;width:100%;max-width:600px;" src="${src}"/>`).join("");
-    const w = window.open("");
-    w.document.write(`<html><head><title>Exported Characteristics</title></head><body style="background:#0b1020;color:#fff;font-family:sans-serif;">${html}</body></html>`);
-    w.document.close();
-  });
-}
-
-// ------------------------- 新增：Q 点点击调节偏置功能 -------------------------
-/**
- * enableQPointAdjustment():
- * Attach a click handler to the output characteristics chart.  When the user clicks on the "Q 点" marker,
- * the x-coordinate (VCE) of the click is used as the target VCEQ.  The function then scans through a range of VBQ values
- * to find a bias that yields a VCEQ closest to the clicked position, updates the parameter, and re-renders the charts.
- * Note: This is a simplified approach to “拖拽 Q 点” —用户只需点击想要的新 Q 点位置即可完成调节。
- */
-function enableQPointAdjustment(){
-  const outDiv = document.getElementById("plotOut");
-  if (!outDiv || typeof Plotly === "undefined") return;
-  // Remove previous listener to avoid stacking multiple handlers
-  if (outDiv._qPointHandler) {
-    Plotly.off(outDiv, 'plotly_click', outDiv._qPointHandler);
-  }
-  const handler = function(event){
-    if (!event || !event.points || event.points.length === 0) return;
-    const pt = event.points[0];
-    // 根据点击点的 VCE 调整 VBQ；不限定点击对象
-    const targetVCE = pt.x;
-    const p = currentParams();
-    const circuit = App.state.circuit;
-    let bestVB = p.VBQ;
-    let bestErr = 1e9;
-    const steps = 60;
-    for (let i=0; i<=steps; i++){
-      const vb = 0.2 + (3.2 - 0.2) * (i/steps);
-      const candidate = deepCopy(p);
-      candidate.VBQ = vb;
-      const dc = solveDC(candidate, circuit);
-      if (dc.ok){
-        const err = Math.abs(dc.VCEQ - targetVCE);
-        if (err < bestErr){
-          bestErr = err;
-          bestVB = vb;
-        }
-      }
-    }
-    p.VBQ = bestVB;
-    buildParamPanel();
-    if (App.state.fsm.mode === "RUN"){
-      computeAndRenderSafe();
-    } else if (App.state.fsm.mode === "HOLD"){
-      App.state.pending = true;
-      document.getElementById("pendingHint").style.display = "block";
-    }
-  };
-  outDiv._qPointHandler = handler;
-  Plotly.on(outDiv, 'plotly_click', handler);
+  Plotly.downloadImage("plotOut", {format:"png", filename:"output_characteristics"});
+  setTimeout(()=> Plotly.downloadImage("plotIn", {format:"png", filename:"input_characteristics"}), 350);
 }
 
 /* ----------------------------- Power/HOLD 按钮逻辑 ----------------------------- */
@@ -2650,6 +2736,203 @@ function runSelfTests(){
   renderTests();
 }
 
+/* ----------------------------- 覆盖层 / 弹窗 / 快捷键（UI增强） ----------------------------- */
+function debounce(fn, waitMs){
+  let t = null;
+  return (...args)=>{
+    if (t) clearTimeout(t);
+    t = setTimeout(()=> fn(...args), waitMs);
+  };
+}
+
+function resizeAllPlots(){
+  const ids = ["plotUi","plotUo","plotIn","plotTransfer","plotOut"];
+  for (const id of ids){
+    try{
+      const div = document.getElementById(id);
+      if (div) Plotly.Plots.resize(div);
+    }catch(e){ /* ignore */ }
+  }
+}
+
+function openMorePanel(){
+  const mask = document.getElementById("moreOverlay");
+  const panel = document.getElementById("morePanel");
+  if (!mask || !panel) return;
+  mask.classList.add("show");
+  panel.classList.add("open");
+  mask.setAttribute("aria-hidden", "false");
+}
+function closeMorePanel(){
+  const mask = document.getElementById("moreOverlay");
+  const panel = document.getElementById("morePanel");
+  if (!mask || !panel) return;
+  panel.classList.remove("open");
+  mask.classList.remove("show");
+  mask.setAttribute("aria-hidden", "true");
+}
+
+function bindMorePanel(){
+  const btn = document.getElementById("moreBtn");
+  const close = document.getElementById("closeMoreBtn");
+  const mask = document.getElementById("moreOverlay");
+  if (btn) btn.addEventListener("click", openMorePanel);
+  if (close) close.addEventListener("click", closeMorePanel);
+  if (mask) mask.addEventListener("click", closeMorePanel);
+  // ESC 关闭
+  window.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape"){
+      const panel = document.getElementById("morePanel");
+      if (panel && panel.classList.contains("open")) closeMorePanel();
+    }
+  });
+}
+
+function maybeShowFollowModal(){
+  const KEY = "bjt_follow_prompt_v1_dontshow";
+  try{
+    if (localStorage.getItem(KEY)==="1") return;
+  }catch(e){ /* ignore */ }
+  const modal = document.getElementById("followModal");
+  if (!modal) return;
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+}
+function closeFollowModal(setDontShow){
+  const modal = document.getElementById("followModal");
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+  if (setDontShow){
+    try{ localStorage.setItem("bjt_follow_prompt_v1_dontshow", "1"); }catch(e){}
+  }
+}
+function bindFollowModal(){
+  const okBtn = document.getElementById("followOkBtn");
+  const goBtn = document.getElementById("followGoBtn");
+  const dont = document.getElementById("followDontShow");
+  if (okBtn) okBtn.addEventListener("click", ()=> closeFollowModal(!!(dont && dont.checked)));
+  if (goBtn) goBtn.addEventListener("click", ()=>{
+    window.open("https://space.bilibili.com/269896665", "_blank", "noopener");
+    closeFollowModal(!!(dont && dont.checked));
+  });
+  // 点击背景关闭（但不强制勾选）
+  const modal = document.getElementById("followModal");
+  if (modal) modal.addEventListener("click", (e)=>{
+    if (e.target === modal) closeFollowModal(false);
+  });
+}
+
+function isInputContext(){
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = (el.tagName||"").toLowerCase();
+  return tag==="input" || tag==="textarea" || tag==="select" || !!el.isContentEditable;
+}
+function getDefForKey(key){
+  const circuit = App.state.circuit;
+  const defs = [];
+  defs.push(...PARAM_DEFS.common);
+  if (circuit==="CE") defs.push(...PARAM_DEFS.ce);
+  if (circuit==="CC") defs.push(...PARAM_DEFS.cc);
+  if (circuit==="CB") defs.push(...PARAM_DEFS.cb);
+  defs.push(...PARAM_DEFS.limits);
+  return defs.find(d=>d.key===key);
+}
+function setParamValue(key, value){
+  const p = currentParams();
+  const def = getDefForKey(key);
+  if (!def) return;
+  if (def.type==="select"){
+    p[key] = value;
+    const sel = document.getElementById(`param_${key}`);
+    if (sel){
+      App.guard.programmatic = true;
+      sel.value = (typeof value==="boolean") ? (value?"ON":"OFF") : String(value);
+      App.guard.programmatic = false;
+    }
+    onAnyParamChange(key);
+    return;
+  }
+  const vv = clamp(Number(value), Number(def.min), Number(def.max));
+  if (!isFiniteNum(vv)) return;
+  p[key] = vv;
+  App.guard.programmatic = true;
+  const r = document.getElementById(`paramR_${key}`);
+  const n = document.getElementById(`paramN_${key}`);
+  if (r) r.value = vv;
+  if (n) n.value = vv;
+  App.guard.programmatic = false;
+  onAnyParamChange(key);
+}
+
+function bindKeyboardShortcuts(){
+  window.addEventListener("keydown", (e)=>{
+    // 仅在非输入上下文中生效，避免干扰滑块/文本框。
+    if (isInputContext()) return;
+    // 若打开了覆盖层/弹窗，则不抢占方向键
+    const mp = document.getElementById("morePanel");
+    if (mp && mp.classList.contains("open")) return;
+    const fm = document.getElementById("followModal");
+    if (fm && fm.classList.contains("show")) return;
+    const fsm = App.state.fsm;
+    if (fsm.mode==="OFF") return;
+    // Shift=粗调，Alt=细调
+    const k = e.key;
+    if (!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(k)) return;
+    e.preventDefault();
+    const mul = e.shiftKey ? 5 : (e.altKey ? 0.25 : 1);
+    const defVBQ = getDefForKey("VBQ");
+    const defUi  = getDefForKey("Ui");
+    const stepVBQ = defVBQ ? Number(defVBQ.step||0.005) : 0.005;
+    const stepUi  = defUi  ? Number(defUi.step||0.001)  : 0.001;
+    if (k==="ArrowLeft")  setParamValue("VBQ", currentParams().VBQ - stepVBQ*mul);
+    if (k==="ArrowRight") setParamValue("VBQ", currentParams().VBQ + stepVBQ*mul);
+    if (k==="ArrowUp")    setParamValue("Ui",  currentParams().Ui  + stepUi*mul);
+    if (k==="ArrowDown")  setParamValue("Ui",  currentParams().Ui  - stepUi*mul);
+  }, {passive:false});
+}
+
+function autoBiasToVCE(targetVCE){
+  const circuit = App.state.circuit;
+  const p = currentParams();
+  const def = getDefForKey("VBQ");
+  if (!def) return;
+  const vbMin = Number(def.min), vbMax = Number(def.max);
+  let bestVB = p.VBQ;
+  let bestErr = Infinity;
+  // 粗扫（教学工具要稳，不追求最优速度）
+  const steps = 60;
+  for (let i=0;i<=steps;i++){
+    const vb = vbMin + (vbMax-vbMin)*i/steps;
+    const pt = {...p, VBQ: vb};
+    const dc = solveDC(pt, circuit);
+    if (!dc || !dc.ok) continue;
+    const err = Math.abs(dc.VCEQ - targetVCE);
+    if (err < bestErr){
+      bestErr = err;
+      bestVB = vb;
+    }
+  }
+  setParamValue("VBQ", bestVB);
+}
+
+function bindPlotInteractions(){
+  // 输出特性图：单击任一点 -> 调偏置让 VCEQ 靠近点击位置
+  const div = document.getElementById("plotOut");
+  if (!div || typeof div.on !== "function") return;
+  try{ div.removeAllListeners("plotly_click"); }catch(e){}
+  div.on("plotly_click", (data)=>{
+    if (!data || !data.points || !data.points[0]) return;
+    const fsm = App.state.fsm;
+    if (fsm.mode==="OFF") return;
+    const x = data.points[0].x;
+    if (!isFiniteNum(x)) return;
+    // HOLD 时允许调整参数，但不会立即刷新（符合状态机要求）
+    autoBiasToVCE(x);
+  });
+}
+
 /* ----------------------------- 初始化 & 事件绑定 ----------------------------- */
 function init(){
   fillPresetSelect();
@@ -2696,58 +2979,32 @@ function init(){
   });
   document.getElementById("pngWaveBtn").addEventListener("click", exportPNGWave);
   document.getElementById("pngCharBtn").addEventListener("click", exportPNGChar);
-  // 更多按钮：打开/关闭右侧信息面板
-  const moreBtnEl = document.getElementById("moreBtn");
-  const morePanelEl = document.getElementById("morePanel");
-  const closeMoreBtnEl = document.getElementById("closeMoreBtn");
-  if (moreBtnEl && morePanelEl && closeMoreBtnEl){
-    moreBtnEl.addEventListener("click", ()=>{
-      morePanelEl.style.display = "block";
-    });
-    closeMoreBtnEl.addEventListener("click", ()=>{
-      morePanelEl.style.display = "none";
-    });
-  }
   document.getElementById("powerBtn").addEventListener("click", ()=>{
     setFSM({type:"SET_POWER", value: !App.state.fsm.powerSwitch});
   });
   document.getElementById("holdBtn").addEventListener("click", ()=>{
     setFSM({type:"SET_HOLD", value: !App.state.fsm.holdSwitch});
   });
+
+  // UI 增强：更多抽屉 / 首次关注弹窗 / 快捷键 / 图表交互
+  bindMorePanel();
+  bindFollowModal();
+  bindKeyboardShortcuts();
+
   buildParamPanel();
   updatePowerHoldButtons();
   renderPowerOff();
+  resizeAllPlots();
   runSelfTests();
   startRunLoop();
+
+  // 解决部分浏览器在缩放/改变窗口时 Plotly 图表尺寸不同步的问题
+  window.addEventListener("resize", debounce(resizeAllPlots, 120));
+
+  // 首次访问关注弹窗（可“不再提醒”）
+  maybeShowFollowModal();
 }
 window.addEventListener("load", init);
 </script>
-
-  <!-- 右侧“更多”信息面板（默认隐藏） -->
-  <div id="morePanel">
-    <button id="closeMoreBtn" class="closeBtn">关闭</button>
-    <h3>关于本工具</h3>
-    <p>本模拟工具旨在帮助学习和理解三种基本 BJT 放大电路（共射、共集、共基）的工作原理。您可以调整电源电压、晶体管参数、偏置以及输入信号，实时查看电路示意图、Q 点、各种特性曲线与波形。工具采用简化模型，演示现象而非精确 SPICE 结果。</p>
-    <h3>版本更新日志</h3>
-    <p>
-      v1.0：初始版本，支持 CE/CC/CB 三种电路；<br/>
-      v1.1：修复动态牵制计算，改进自测；<br/>
-      v1.2：加入拖拽 Q 点调节偏置功能；<br/>
-      v1.3：优化布局，引入折叠面板和两列图表布局；<br/>
-      v1.4：新增右侧更多信息面板，完善版本信息与使用说明。
-    </p>
-    <h3>使用说明</h3>
-    <p>
-      - 在顶部选择电路类型、电源状态及运行模式。\
-      - 调整参数面板中的电阻、偏置与输入信号，观察右侧图表变化。\
-      - 点击输出特性图中的点可改变偏置（拖拽 Q 点）。\
-      - 点击各折叠标题可展开/收起内容，节省屏幕空间。\
-    </p>
-  </div>
-  <!-- 页脚声明信息 -->
-  <div class="footerLink" style="margin: 12px; text-align: center; font-size: 12px; color: var(--muted);">
-    本工具仅供教学演示使用。跳转至作者B站主页：
-    <a href="https://space.bilibili.com/269896665" target="_blank" style="color: var(--accent); text-decoration: underline;">@不踩白块的黑块</a>
-  </div>
 </body>
 </html>
